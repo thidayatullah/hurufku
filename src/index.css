@@ -1,13 +1,17 @@
 :root {
-  /* Surfaces */
-  --paper: #f5f7fa;
-  --toolbar: #e8eef5;
-  --ink: #1e293b;
-  --muted: #64748b;
-  --border: #c5d0de;
-  --accent: #0d9488;
+  /* Surfaces — Color Hunt "kids" palette 696fc7 / a7aae1 / f5d3c4 / f2aebb */
+  --paper: #fdf7f3;
+  --toolbar: #f5d3c4;
+  --panel: #fbe7de;
+  --control-surface: #ffffff;
+  --ink: #2e2b40;
+  --muted: #6b6785;
+  --border: #a7aae1;
+  --accent: #5f64c0;
   --accent-ink: #ffffff;
-  --danger: #b91c1c;
+  --accent-tint: #e8e9f8;
+  --accent-soft: #f2aebb;
+  --danger: #b3324a;
 
   /* Type */
   --font-brand: 'Fredoka', system-ui, sans-serif;
@@ -25,6 +29,7 @@
   --toolbar-height: 56px;
   --radius-sm: 8px;
   --radius-control: 12px;
+  --radius-island: 16px;
 
   /* Motion */
   --duration: 180ms;
@@ -58,14 +63,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex: 0 0 var(--toolbar-height);
   gap: var(--space-3);
   height: var(--toolbar-height);
   padding: 0 var(--space-4);
   background: var(--toolbar);
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
 }
 
-.toolbar h1 {
+.brand {
+  flex: 0 0 auto;
   margin: 0;
   font-family: var(--font-brand);
   font-size: 1.25rem;
@@ -73,9 +83,87 @@ body {
   letter-spacing: 0.01em;
 }
 
-.toolbar-actions {
+.toolbar-actions,
+.language-group {
   display: flex;
   gap: var(--space-2);
+  flex: 0 0 auto;
+}
+
+/* Material Symbols stand in for SF Symbols on the web; text is the ligature name. */
+.icon {
+  font-family: 'Material Symbols Rounded';
+  font-size: 28px;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.icon-filled {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    background-color var(--duration) var(--ease),
+    color var(--duration) var(--ease);
+}
+
+.icon-button:hover:not(:disabled) {
+  background: var(--accent-tint);
+}
+
+.icon-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.icon-button[aria-pressed='true'] {
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+.icon-button-accent {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.icon-button-accent:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+.icon-button:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .btn {
@@ -85,7 +173,7 @@ body {
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-control);
-  background: #fff;
+  background: var(--control-surface);
   color: var(--ink);
   cursor: pointer;
   transition:
@@ -115,10 +203,172 @@ body {
   border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
 }
 
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.inspector,
+.letter-panel {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  overflow-x: auto;
+}
+
+.panel-label,
+.picker-label {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.inspector-chip {
+  flex: 0 0 auto;
+}
+
+.color-swatch {
+  flex: 0 0 var(--tap-min);
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 3px solid transparent;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.color-swatch[aria-pressed='true'] {
+  border-color: var(--accent-ink);
+  outline: 3px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.letter-panel {
+  align-items: stretch;
+}
+
+/* Sits in a panel rather than an island, so it keeps a hairline to read as a control. */
+.caps-button {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--control-surface);
+}
+
+/* Reading order: A–M on the top row, N–Z below, never column-first. */
+.letter-grid {
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-columns: repeat(13, 56px);
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-1);
+}
+
+.glyph-tile {
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  padding: 0;
+  font-family: var(--font-brand);
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
 .board-wrap {
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow: hidden;
   touch-action: none;
   background: var(--paper);
+}
+
+/* Floating control clusters over the board: tools on top, zoom bottom-left. */
+.island {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-island);
+  background: var(--control-surface);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 12%, transparent);
+}
+
+.tool-island {
+  top: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.island-divider {
+  align-self: stretch;
+  width: 1px;
+  margin-block: var(--space-1);
+  margin-inline: var(--space-1);
+  background: var(--border);
+}
+
+.zoom-island {
+  left: var(--space-3);
+  bottom: var(--space-3);
+}
+
+.action-island {
+  right: var(--space-3);
+  bottom: var(--space-3);
+}
+
+.zoom-level {
+  padding-inline: var(--space-2);
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.canvas-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.glyph-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--control-surface);
+  transition:
+    opacity var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+
+.ink-picker {
+  position: absolute;
+  z-index: 2;
+  border: 2px solid var(--accent-soft);
+  max-width: calc(100% - 2 * var(--space-4));
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+@media (max-width: 720px) {
+  .toolbar {
+    padding-inline: var(--space-2);
+  }
+
+  /* Language matters more than the wordmark on a phone. */
+  .brand {
+    display: none;
+  }
+
+  .toolbar .btn {
+    padding-inline: var(--space-2);
+  }
 }
