@@ -5,7 +5,7 @@ import type {
 } from '../theme/tokens'
 
 export type Language = 'id' | 'en'
-export type Tool = 'hand' | 'pencil' | 'lasso' | 'addSticker'
+export type Tool = 'hand' | 'pencil' | 'eraser' | 'lasso' | 'addSticker'
 export type { LetterSize }
 
 export type BoardPoint = {

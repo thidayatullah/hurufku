@@ -76,6 +76,7 @@ Kid-facing controls use a glyph icon font, never emoji or bitmaps. SF Symbols is
 |---------|----------------------|-----------------------------|
 | Hand | `hand.raised` | `back_hand` |
 | Pencil | `pencil.tip` | `stylus` |
+| Eraser | `eraser` | `ink_eraser` |
 | Lasso | `lasso` | `lasso_select` |
 | Add Sticker | `textformat` | `text_fields` |
 | Reset zoom | `arrow.up.left.and.down.right.magnifyingglass` | `zoom_out_map` |
@@ -90,7 +91,7 @@ Icon buttons are square at `--tap-min`, borderless inside an island, active stat
 Chrome is split between a slim header and floating islands over the board, so the canvas stays the product.
 
 - **Header** (`--toolbar-height`, `--toolbar` surface, bottom border `--border`): wordmark plus the language group only. The wordmark hides below 720px.
-- **Tool island** — top center of the board: Hand, Pencil, Lasso, Add Sticker in one group. Pencil is selected by default. Speak joins this group after a vertical divider, only while letters are selected.
+- **Tool island** — top center of the board: Hand, Pencil, Eraser, Lasso, Add Sticker in one group. Pencil is selected by default. Speak joins this group after a vertical divider, only while letters are selected. Eraser stays selected until another tool is chosen; tapping a sticker deletes that letter.
 - **Zoom island** — bottom left: current zoom percentage and Reset zoom, which is disabled at 100% with no pan.
 - **Action island** — bottom right, contextual: “I’m done” only while ink waits to be recognized.
 - Islands use `--control-surface`, `--radius-island`, a hairline border, and one soft shadow. This is the one place card chrome is allowed, since islands wrap interaction.

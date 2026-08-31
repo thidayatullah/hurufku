@@ -74,6 +74,14 @@ export const moveSticker = (
   ),
 })
 
+export const removeSticker = (board: Board, id: string): Board => ({
+  ...board,
+  letters: board.letters.filter((letter) => letter.id !== id),
+  selectedIds: board.selectedIds.filter((selectedId) => selectedId !== id),
+  lastPlacedStickerId:
+    board.lastPlacedStickerId === id ? null : board.lastPlacedStickerId,
+})
+
 /** Start of the row the anchor belongs to, one line lower and still on screen. */
 const nextRowPoint = (
   board: Board,
@@ -142,7 +150,7 @@ export const replacePendingInkWithSticker = (
 export const setTool = (board: Board, tool: Tool): Board => ({
   ...board,
   tool,
-  selectedIds: tool === 'pencil' ? [] : board.selectedIds,
+  selectedIds: tool === 'pencil' || tool === 'eraser' ? [] : board.selectedIds,
 })
 
 export const setLanguage = (board: Board, language: Language): Board => ({

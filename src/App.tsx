@@ -25,6 +25,7 @@ import { letterSizes, type LetterSize } from './theme/tokens'
 const tools: { value: Tool; label: string; icon: string }[] = [
   { value: 'hand', label: 'Hand', icon: 'back_hand' },
   { value: 'pencil', label: 'Pencil', icon: 'stylus' },
+  { value: 'eraser', label: 'Eraser', icon: 'ink_eraser' },
   { value: 'lasso', label: 'Lasso', icon: 'lasso_select' },
   { value: 'addSticker', label: 'Add Sticker', icon: 'text_fields' },
 ]

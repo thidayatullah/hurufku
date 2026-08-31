@@ -18,6 +18,7 @@ import {
   moveSticker,
   pointInPolygon,
   replacePendingInkWithSticker,
+  removeSticker,
   setSelection,
   setTool,
   type StickerStyle,
@@ -372,9 +373,13 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
                   fontSize={dimensions.height}
                   fontFamily={letter.fontFamily}
                   fill={letter.fill}
-                  draggable
+                  draggable={board.tool !== 'eraser'}
                   onPointerDown={(event) => {
                     event.cancelBubble = true
+                    if (board.tool === 'eraser') {
+                      setBoard((current) => removeSticker(current, letter.id))
+                      return
+                    }
                     if (board.tool !== 'hand') {
                       clearInk()
                       setLasso([])
