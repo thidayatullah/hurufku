@@ -9,10 +9,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'ReadCanvas',
-        short_name: 'ReadCanvas',
+        name: 'HurufPad',
+        short_name: 'HurufPad',
         description:
-          'Preschool letter canvas: scribble or type letters, then arrange and hear them.',
+          'Letter pad for kids: scribble or type letters, then arrange and hear them.',
         theme_color: '#f7f3ea',
         background_color: '#f7f3ea',
         display: 'standalone',

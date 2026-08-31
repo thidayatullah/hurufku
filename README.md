@@ -1,6 +1,6 @@
-# ReadCanvas
+# HurufPad
 
-Preschool letter canvas (web). See [docs/PRODUCT_BRIEF.md](docs/PRODUCT_BRIEF.md).
+Letter pad for kids (web). See [docs/PRODUCT_BRIEF.md](docs/PRODUCT_BRIEF.md).
 
 ```bash
 npm install

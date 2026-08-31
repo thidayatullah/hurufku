@@ -1,8 +1,8 @@
-# ReadCanvas — product brief
+# HurufPad — product brief
 
 ## Overview
 
-ReadCanvas is a large shared canvas for preschool reading: kids scribble letters with a marker (finger/mouse) or type them, the app turns each scribble into a real letter they can move, resize, recolor, and restyle. They line letters up into bits of language (BA, BABA, ABA). A teacher can say how it sounds; a Speak action can also read a selection aloud.
+HurufPad (*huruf* = letter, *pad* = drawing surface) is a large shared canvas for preschool reading: kids scribble letters with a marker (finger/mouse) or type them, the app turns each scribble into a real letter they can move, resize, recolor, and restyle. They line letters up into bits of language (BA, BABA, ABA). A teacher can say how it sounds; a Speak action can also read a selection aloud.
 
 v1 is a **browser app** (phones, cheap Android tablets, Chromebooks, PCs) so families and classrooms are not locked to iPad.
 

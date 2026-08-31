@@ -25,7 +25,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="toolbar">
-        <h1>ReadCanvas</h1>
+        <h1>HurufPad</h1>
         <div className="toolbar-actions" role="group" aria-label="Spoken language">
           <button
             type="button"
