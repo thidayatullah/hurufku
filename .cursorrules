@@ -1,6 +1,7 @@
 # HurufPad — project rules
 
 Source of truth for product: `docs/PRODUCT_BRIEF.md`. Follow that brief; do not add out-of-v1 features unless asked.
+Visual / UI source of truth: `docs/DESIGN.md`. Use tokens in `src/index.css` and `src/theme/tokens.ts`; do not invent one-off colors or control styles.
 
 ## Stack
 

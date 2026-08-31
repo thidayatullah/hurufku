@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BoardCanvas } from './board/BoardCanvas'
 import { emptyBoard, type Language } from './board/types'
+import { toolbarHeight } from './theme/tokens'
 
 export default function App() {
   const [board, setBoard] = useState(() => emptyBoard())
@@ -17,7 +18,6 @@ export default function App() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  const toolbarHeight = 56
   const setLanguage = (language: Language) => {
     setBoard((current) => ({ ...current, language }))
   }
@@ -29,6 +29,7 @@ export default function App() {
         <div className="toolbar-actions" role="group" aria-label="Spoken language">
           <button
             type="button"
+            className="btn"
             aria-pressed={board.language === 'en'}
             onClick={() => setLanguage('en')}
           >
@@ -36,6 +37,7 @@ export default function App() {
           </button>
           <button
             type="button"
+            className="btn"
             aria-pressed={board.language === 'id'}
             onClick={() => setLanguage('id')}
           >

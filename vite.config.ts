@@ -13,8 +13,8 @@ export default defineConfig({
         short_name: 'HurufPad',
         description:
           'Letter pad for kids: scribble or type letters, then arrange and hear them.',
-        theme_color: '#f7f3ea',
-        background_color: '#f7f3ea',
+        theme_color: '#f5f7fa',
+        background_color: '#f5f7fa',
         display: 'standalone',
         start_url: '/',
       },
