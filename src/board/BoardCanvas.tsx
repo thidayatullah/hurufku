@@ -97,10 +97,16 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
   const stageRef = useRef<Konva.Stage>(null)
   const timerRef = useRef<number | null>(null)
   const pendingRef = useRef<Stroke[]>([])
-  const pinchRef = useRef<{ distance: number; scale: number } | null>(null)
+  const pinchRef = useRef<{
+    distance: number
+    scale: number
+    anchor: BoardPoint
+  } | null>(null)
+  const viewportRef = useRef(initialViewport)
+  const drawingRef = useRef(false)
+  const lassoRef = useRef<BoardPoint[]>([])
   const [viewport, setViewport] = useState(initialViewport)
   const [pendingStrokes, setPendingStrokes] = useState<Stroke[]>([])
-  const [drawing, setDrawing] = useState(false)
   const [lasso, setLasso] = useState<BoardPoint[]>([])
   const [picker, setPicker] = useState<{
     alternatives: string[]
@@ -110,17 +116,26 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
 
   const updateViewport = useCallback(
     (next: Viewport) => {
+      viewportRef.current = next
       setViewport(next)
       onViewportChange(next)
     },
     [onViewportChange],
   )
 
-  const updatePending = (strokes: Stroke[]) => {
-    pendingRef.current = strokes
-    setPendingStrokes(strokes)
-    onPendingInkChange(strokes.length > 0)
-  }
+  const updatePending = useCallback(
+    (strokes: Stroke[]) => {
+      pendingRef.current = strokes
+      setPendingStrokes(strokes)
+      onPendingInkChange(strokes.length > 0)
+    },
+    [onPendingInkChange],
+  )
+
+  const setLassoPoints = useCallback((points: BoardPoint[]) => {
+    lassoRef.current = points
+    setLasso(points)
+  }, [])
 
   const clearTimer = () => {
     if (timerRef.current !== null) {
@@ -177,6 +192,98 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
 
   useEffect(() => () => clearTimer(), [])
 
+  /** A second finger always means navigate, so drop whatever the first one started. */
+  const cancelActiveGesture = useCallback(() => {
+    const stage = stageRef.current
+    if (stage?.isDragging()) stage.stopDrag()
+    if (drawingRef.current) {
+      drawingRef.current = false
+      clearTimer()
+      updatePending(pendingRef.current.slice(0, -1))
+    }
+    if (lassoRef.current.length > 0) setLassoPoints([])
+  }, [setLassoPoints, updatePending])
+
+  /**
+   * Pinch runs on native listeners rather than Konva events: Konva only reports a
+   * touch when it lands on a node it tracks, and Safari otherwise steals the
+   * gesture for page zoom, which made pinch fire only some of the time.
+   */
+  useEffect(() => {
+    const container = stageRef.current?.container()
+    if (!container) return
+
+    const readPinch = (touches: TouchList) => {
+      const box = container.getBoundingClientRect()
+      const [first, second] = [touches[0], touches[1]]
+      return {
+        distance: Math.hypot(
+          second.clientX - first.clientX,
+          second.clientY - first.clientY,
+        ),
+        midpoint: {
+          x: (first.clientX + second.clientX) / 2 - box.left,
+          y: (first.clientY + second.clientY) / 2 - box.top,
+        },
+      }
+    }
+
+    const startPinch = (event: TouchEvent) => {
+      if (event.touches.length !== 2) return
+      event.preventDefault()
+      cancelActiveGesture()
+      const { distance, midpoint } = readPinch(event.touches)
+      const { scale, x, y } = viewportRef.current
+      pinchRef.current = {
+        distance,
+        scale,
+        anchor: {
+          x: (midpoint.x - x) / scale,
+          y: (midpoint.y - y) / scale,
+        },
+      }
+    }
+
+    const movePinch = (event: TouchEvent) => {
+      const pinch = pinchRef.current
+      if (!pinch || event.touches.length !== 2) return
+      event.preventDefault()
+      const { distance, midpoint } = readPinch(event.touches)
+      // Holding the starting board point under the moving midpoint pans and zooms at once.
+      const scale = Math.min(
+        maxBoardScale,
+        Math.max(minBoardScale, pinch.scale * (distance / pinch.distance)),
+      )
+      updateViewport({
+        scale,
+        x: midpoint.x - pinch.anchor.x * scale,
+        y: midpoint.y - pinch.anchor.y * scale,
+      })
+    }
+
+    const endPinch = (event: TouchEvent) => {
+      if (event.touches.length < 2) pinchRef.current = null
+    }
+
+    const blockSafariZoom = (event: Event) => event.preventDefault()
+
+    container.addEventListener('touchstart', startPinch, { passive: false })
+    container.addEventListener('touchmove', movePinch, { passive: false })
+    container.addEventListener('touchend', endPinch)
+    container.addEventListener('touchcancel', endPinch)
+    container.addEventListener('gesturestart', blockSafariZoom)
+    container.addEventListener('gesturechange', blockSafariZoom)
+
+    return () => {
+      container.removeEventListener('touchstart', startPinch)
+      container.removeEventListener('touchmove', movePinch)
+      container.removeEventListener('touchend', endPinch)
+      container.removeEventListener('touchcancel', endPinch)
+      container.removeEventListener('gesturestart', blockSafariZoom)
+      container.removeEventListener('gesturechange', blockSafariZoom)
+    }
+  }, [cancelActiveGesture, updateViewport])
+
   useEffect(() => {
     let active = true
     document.fonts.ready.then(() => {
@@ -200,6 +307,7 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
 
   const startPointer = (event: KonvaEventObject<PointerEvent>) => {
     if (event.target !== event.target.getStage()) return
+    if (pinchRef.current) return
     const point = boardPoint()
     if (!point) return
 
@@ -213,27 +321,28 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
       } else {
         updatePending([...pendingRef.current, [point]])
       }
-      setDrawing(true)
+      drawingRef.current = true
     } else if (board.tool === 'lasso') {
-      setLasso([point])
+      setLassoPoints([point])
     }
   }
 
   const movePointer = () => {
+    if (pinchRef.current) return
     const point = boardPoint()
     if (!point) return
-    if (board.tool === 'pencil' && drawing) {
+    if (board.tool === 'pencil' && drawingRef.current) {
       const next = [...pendingRef.current]
       next[next.length - 1] = [...next[next.length - 1], point]
       updatePending(next)
-    } else if (board.tool === 'lasso' && lasso.length > 0) {
-      setLasso((current) => [...current, point])
+    } else if (board.tool === 'lasso' && lassoRef.current.length > 0) {
+      setLassoPoints([...lassoRef.current, point])
     }
   }
 
   const endPointer = () => {
-    if (board.tool === 'pencil' && drawing) {
-      setDrawing(false)
+    if (board.tool === 'pencil' && drawingRef.current) {
+      drawingRef.current = false
       clearTimer()
       timerRef.current = window.setTimeout(transformInk, recognitionPauseMs)
     } else if (board.tool === 'lasso' && lasso.length > 2) {
@@ -253,7 +362,7 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
         alignSelectedStickers(setSelection(current, selectedIds)),
       )
     }
-    if (board.tool === 'lasso') setLasso([])
+    if (board.tool === 'lasso') setLassoPoints([])
   }
 
   const onWheel = (event: KonvaEventObject<WheelEvent>) => {
@@ -274,39 +383,6 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
     })
   }
 
-  const onTouchMove = (event: KonvaEventObject<TouchEvent>) => {
-    if (event.evt.touches.length !== 2) return
-    event.evt.preventDefault()
-    const [first, second] = Array.from(event.evt.touches)
-    const distance = Math.hypot(
-      second.clientX - first.clientX,
-      second.clientY - first.clientY,
-    )
-    const stageBox = stageRef.current?.container().getBoundingClientRect()
-    if (!stageBox) return
-    if (!pinchRef.current) {
-      pinchRef.current = { distance, scale: viewport.scale }
-      return
-    }
-    const midpoint = {
-      x: (first.clientX + second.clientX) / 2 - stageBox.left,
-      y: (first.clientY + second.clientY) / 2 - stageBox.top,
-    }
-    const scale = Math.min(
-      maxBoardScale,
-      Math.max(
-        minBoardScale,
-        pinchRef.current.scale * (distance / pinchRef.current.distance),
-      ),
-    )
-    const boardX = (midpoint.x - viewport.x) / viewport.scale
-    const boardY = (midpoint.y - viewport.y) / viewport.scale
-    updateViewport({
-      scale,
-      x: midpoint.x - boardX * scale,
-      y: midpoint.y - boardY * scale,
-    })
-  }
 
   const pickerStyle = picker
     ? {
@@ -328,7 +404,7 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
         y={viewport.y}
         scaleX={viewport.scale}
         scaleY={viewport.scale}
-        draggable={board.tool === 'hand'}
+        draggable={board.tool !== 'pencil' && board.tool !== 'lasso'}
         onDragEnd={(event) => {
           if (event.target === event.target.getStage()) {
             updateViewport({
@@ -343,10 +419,6 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
         onPointerUp={endPointer}
         onPointerLeave={endPointer}
         onWheel={onWheel}
-        onTouchMove={onTouchMove}
-        onTouchEnd={() => {
-          pinchRef.current = null
-        }}
       >
         <Layer key={fontsLoaded ? 'board-fonts' : 'board-fallback'}>
           {board.letters.map((letter) => {
@@ -382,7 +454,7 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
                     }
                     if (board.tool !== 'hand') {
                       clearInk()
-                      setLasso([])
+                      setLassoPoints([])
                     }
                     setBoard((current) =>
                       setSelection(setTool(current, 'hand'), [letter.id]),

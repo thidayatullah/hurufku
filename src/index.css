@@ -332,9 +332,12 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.canvas-shell {
+/* touch-action does not inherit, so the canvas itself must opt out of browser gestures. */
+.canvas-shell,
+.canvas-shell canvas {
   position: relative;
   overflow: hidden;
+  touch-action: none;
 }
 
 .glyph-picker {

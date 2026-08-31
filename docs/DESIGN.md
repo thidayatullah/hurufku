@@ -123,6 +123,12 @@ Each option includes a flag and a readable label. **🇮🇩 Indonesia** comes f
 - Both interactions share the same glyph-tile and button tokens
 - Optional card surface here is OK (interaction container)
 
+### Board navigation
+
+- Two-finger gestures pan and zoom the board in every tool; a second finger cancels whatever the first one started, so a pinch never leaves a stray scribble.
+- One-finger drag on empty board pans in Hand, Eraser, and Add Sticker. Pencil and Lasso keep one-finger drag for drawing and selecting.
+- Wheel zooms around the pointer in every tool.
+
 ### Selection on canvas
 
 - One selection language everywhere: same handle size, same outline color (`--accent`)
