@@ -208,17 +208,6 @@ body {
   opacity: 0.45;
 }
 
-.inspector,
-.letter-panel {
-  display: flex;
-  align-items: center;
-  flex: 0 0 auto;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--border);
-  background: var(--panel);
-  overflow-x: auto;
-}
 
 .panel-label,
 .picker-label {
@@ -247,25 +236,33 @@ body {
   outline-offset: -2px;
 }
 
-.letter-panel {
-  align-items: stretch;
+/* Keyboard-shaped, but rows read A–Z left to right and top to bottom. */
+.letter-island {
+  flex-direction: column;
+  left: 50%;
+  bottom: calc(var(--tap-min) + var(--space-3) * 2);
+  transform: translateX(-50%);
+  gap: var(--space-2);
+  padding: var(--space-2);
+  max-width: calc(100% - var(--space-4) * 2);
+  overflow-x: auto;
+  background: var(--panel);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
-/* Sits in a panel rather than an island, so it keeps a hairline to read as a control. */
+.letter-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* Left of the middle row, where a keyboard puts caps lock. */
 .caps-button {
   flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
   border: 1px solid var(--border);
   background: var(--control-surface);
-}
-
-/* Reading order: A–M on the top row, N–Z below, never column-first. */
-.letter-grid {
-  display: grid;
-  grid-auto-flow: row;
-  grid-template-columns: repeat(13, 56px);
-  gap: var(--space-2);
-  overflow-x: auto;
-  padding-bottom: var(--space-1);
 }
 
 .glyph-tile {
@@ -322,6 +319,19 @@ body {
 .action-island {
   right: var(--space-3);
   bottom: var(--space-3);
+}
+
+/* Secondary to the tool island: sits low, tinted, and with a lighter shadow. */
+.inspector-island {
+  left: 50%;
+  bottom: calc(var(--tap-min) + var(--space-3) * 2);
+  transform: translateX(-50%);
+  gap: var(--space-2);
+  padding: var(--space-2);
+  max-width: calc(100% - var(--space-4) * 2);
+  overflow-x: auto;
+  background: var(--panel);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
 .zoom-level {

@@ -82,7 +82,7 @@ Kid-facing controls use a glyph icon font, never emoji or bitmaps. SF Symbols is
 | Reset zoom | `arrow.up.left.and.down.right.magnifyingglass` | `zoom_out_map` |
 | Speak | `person.wave.2` | `record_voice_over` |
 | I’m done | `wand.and.sparkles` | `wand_stars` |
-| Caps lock off / on | `capslock` / `capslock.fill` | `keyboard_capslock` with `FILL` 0 / 1 |
+| Caps lock on / off | `textformat.size.larger` / `textformat.size.smaller` | `uppercase` / `lowercase` |
 
 Icon buttons are square at `--tap-min`, borderless inside an island, active state = `--accent-tint` fill with `--accent` glyph.
 
@@ -92,6 +92,8 @@ Chrome is split between a slim header and floating islands over the board, so th
 
 - **Header** (`--toolbar-height`, `--toolbar` surface, bottom border `--border`): wordmark plus the language group only. The wordmark hides below 720px.
 - **Tool island** — top center of the board: Hand, Pencil, Eraser, Lasso, Add Sticker in one group. Pencil is selected by default. Speak joins this group after a vertical divider, only while letters are selected. Eraser stays selected until another tool is chosen; tapping a sticker deletes that letter.
+- **Letter island** — bottom center while Add Sticker is active: a keyboard-shaped A–Z keypad with caps lock. Shares the slot with the inspector island, which never shows at the same time.
+- **Inspector island** — bottom center, above the bottom row, only with one sticker selected in Hand: size, color, font. It is deliberately subordinate to the tool island — lower on screen, `--panel` tint, lighter shadow — because it edits one letter rather than steering the board.
 - **Zoom island** — bottom left: current zoom percentage and Reset zoom, which is disabled at 100% with no pan.
 - **Action island** — bottom right, contextual: “I’m done” only while ink waits to be recognized.
 - Islands use `--control-surface`, `--radius-island`, a hairline border, and one soft shadow. This is the one place card chrome is allowed, since islands wrap interaction.
@@ -116,10 +118,10 @@ Each option includes a flag and a readable label. **🇮🇩 Indonesia** comes f
 - Large glyph tiles (≥ 56×56), high contrast on `--paper`
 - The recognition picker uses a short list of candidates; the Add Sticker panel uses the full A–Z/a–z grid
 - Add Sticker starts with Caps lock on (A–Z), matching typical preschool classroom glyphs
-- Grid tiles run in reading order, left to right: A–M on the top row, N–Z on the second
+- Keys run in reading order, left to right and top to bottom
 - Taps continue the current row and wrap to a new line at the edge of the visible board, so letters never land off screen
-- Caps lock is an icon button with `aria-pressed`; the glyph is outlined when off and filled when on, and changing it never changes existing stickers
-- The Add Sticker grid sits in a slim, horizontally scrollable board-adjacent panel and does not cover the canvas
+- Caps lock sits left of the middle row like a real keyboard and shows the case currently in use (`uppercase` / `lowercase`), never an arrow; changing it never changes existing stickers
+- The Add Sticker keys sit in a floating island at the bottom of the board, shaped like a keyboard (rows of 10 / 9 / 7) but ordered A–Z, never QWERTY
 - Both interactions share the same glyph-tile and button tokens
 - Optional card surface here is OK (interaction container)
 

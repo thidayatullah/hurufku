@@ -30,7 +30,10 @@ const tools: { value: Tool; label: string; icon: string }[] = [
   { value: 'addSticker', label: 'Add Sticker', icon: 'text_fields' },
 ]
 
-const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+/** Keyboard-shaped rows, but kept in A–Z order rather than QWERTY. */
+const keyboardRows = ['ABCDEFGHIJ', 'KLMNOPQRS', 'TUVWXYZ'].map((row) =>
+  row.split(''),
+)
 
 const makeId = () =>
   globalThis.crypto?.randomUUID?.() ??
@@ -144,79 +147,6 @@ export default function App() {
           </button>
         </div>
       </header>
-      {selectedLetters.length === 1 && board.tool === 'hand' && (
-        <section className="inspector" aria-label="Sticker style">
-          <span className="panel-label">Size</span>
-          {(Object.keys(letterSizes) as LetterSize[]).map((sizeName) => (
-            <button
-              type="button"
-              className="btn inspector-chip"
-              aria-pressed={selectedLetters[0].size === sizeName}
-              onClick={() => chooseStyle('size', sizeName)}
-              key={sizeName}
-            >
-              {sizeName}
-            </button>
-          ))}
-          <span className="panel-label">Color</span>
-          {selectableLetterFills.map((fill, index) => (
-            <button
-              type="button"
-              className="color-swatch"
-              aria-label={`Letter color ${index + 1}`}
-              aria-pressed={selectedLetters[0].fill === fill}
-              style={{ backgroundColor: fill }}
-              onClick={() => chooseStyle('fill', fill)}
-              key={fill}
-            />
-          ))}
-          <span className="panel-label">Font</span>
-          {selectableBoardFonts.map((fontFamily) => (
-            <button
-              type="button"
-              className="btn inspector-chip"
-              aria-pressed={selectedLetters[0].fontFamily === fontFamily}
-              style={{ fontFamily }}
-              onClick={() => chooseStyle('fontFamily', fontFamily)}
-              key={fontFamily}
-            >
-              {fontFamily}
-            </button>
-          ))}
-        </section>
-      )}
-      {board.tool === 'addSticker' && (
-        <section className="letter-panel" aria-label="Add a letter">
-          <button
-            type="button"
-            className="icon-button caps-button"
-            aria-label="Caps lock"
-            aria-pressed={board.capsLock}
-            onClick={() =>
-              setBoard((current) => setCapsLock(current, !current.capsLock))
-            }
-          >
-            <span
-              className={board.capsLock ? 'icon icon-filled' : 'icon'}
-              aria-hidden="true"
-            >
-              keyboard_capslock
-            </span>
-          </button>
-          <div className="letter-grid">
-            {alphabet.map((glyph) => (
-              <button
-                type="button"
-                className="btn glyph-tile"
-                onClick={() => addGridSticker(glyph)}
-                key={glyph}
-              >
-                {board.capsLock ? glyph : glyph.toLowerCase()}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
       <main className="board-wrap" ref={boardWrapRef}>
         <BoardCanvas
           ref={canvasRef}
@@ -262,6 +192,89 @@ export default function App() {
             </>
           )}
         </div>
+        {board.tool === 'addSticker' && (
+          <section className="island letter-island" aria-label="Add a letter">
+            {keyboardRows.map((row, rowIndex) => (
+              <div className="letter-row" key={row[0]}>
+                {rowIndex === 1 && (
+                  <button
+                    type="button"
+                    className="icon-button caps-button"
+                    aria-label={
+                      board.capsLock
+                        ? 'Capital letters'
+                        : 'Small letters'
+                    }
+                    aria-pressed={board.capsLock}
+                    onClick={() =>
+                      setBoard((current) =>
+                        setCapsLock(current, !current.capsLock),
+                      )
+                    }
+                  >
+                    <span className="icon" aria-hidden="true">
+                      {board.capsLock ? 'uppercase' : 'lowercase'}
+                    </span>
+                  </button>
+                )}
+                {row.map((glyph) => (
+                  <button
+                    type="button"
+                    className="btn glyph-tile"
+                    onClick={() => addGridSticker(glyph)}
+                    key={glyph}
+                  >
+                    {board.capsLock ? glyph : glyph.toLowerCase()}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </section>
+        )}
+        {selectedLetters.length === 1 && board.tool === 'hand' && (
+          <section
+            className="island inspector-island"
+            aria-label="Sticker style"
+          >
+            <span className="panel-label">Size</span>
+            {(Object.keys(letterSizes) as LetterSize[]).map((sizeName) => (
+              <button
+                type="button"
+                className="btn inspector-chip"
+                aria-pressed={selectedLetters[0].size === sizeName}
+                onClick={() => chooseStyle('size', sizeName)}
+                key={sizeName}
+              >
+                {sizeName}
+              </button>
+            ))}
+            <span className="panel-label">Color</span>
+            {selectableLetterFills.map((fill, index) => (
+              <button
+                type="button"
+                className="color-swatch"
+                aria-label={`Letter color ${index + 1}`}
+                aria-pressed={selectedLetters[0].fill === fill}
+                style={{ backgroundColor: fill }}
+                onClick={() => chooseStyle('fill', fill)}
+                key={fill}
+              />
+            ))}
+            <span className="panel-label">Font</span>
+            {selectableBoardFonts.map((fontFamily) => (
+              <button
+                type="button"
+                className="btn inspector-chip"
+                aria-pressed={selectedLetters[0].fontFamily === fontFamily}
+                style={{ fontFamily }}
+                onClick={() => chooseStyle('fontFamily', fontFamily)}
+                key={fontFamily}
+              >
+                {fontFamily}
+              </button>
+            ))}
+          </section>
+        )}
         <div className="island zoom-island">
           <span className="zoom-level">{zoomPercent}%</span>
           <button
