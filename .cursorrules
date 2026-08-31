@@ -1,0 +1,23 @@
+# ReadCanvas — project rules
+
+Source of truth for product: `docs/PRODUCT_BRIEF.md`. Follow that brief; do not add out-of-v1 features unless asked.
+
+## Stack
+
+- React + TypeScript + Vite. No backend in v1; static host only.
+- Canvas of **letter objects** (e.g. Konva), not a single text field.
+- PWA: cache the app and the letter model so the board works offline after first load.
+- Persistence: last board only, in `localStorage` / IndexedDB. No login, no cloud sync.
+
+## Recognition and speech
+
+- On-device letter recognition only (TensorFlow.js or ONNX Runtime Web; A–Z / a–z). Never send strokes or images to a cloud OCR API.
+- Convert a scribble after a short pause (multi-stroke letters), with an optional “I’m done.” Low confidence → a short picker, not a silent wrong letter.
+- Keyboard insert skips recognition and places a letter on the board.
+- TTS: Web Speech API (`speechSynthesis`). Language from the English / Indonesian toggle. Do not assume Indonesian voices exist on every device.
+
+## Functional style
+
+- Avoid classes and OOP (`class`, `extends`, `this` for domain logic). Prefer functions, plain data, and React function components + hooks.
+- Model the board as data (arrays/records of letters) and pure functions that return new state. No mutable class stores.
+- Side effects (canvas, IndexedDB, speech, model inference) live in small functions or hooks, not in class methods.
