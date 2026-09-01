@@ -10,8 +10,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'models/**/*'],
       workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,bin,txt,md}'],
         runtimeCaching: [
           {
             urlPattern: ({ url }) =>

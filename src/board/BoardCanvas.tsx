@@ -48,7 +48,7 @@ type BoardCanvasProps = {
 export type BoardCanvasHandle = {
   clearInk: () => void
   resetZoom: () => void
-  transformInk: () => void
+  transformInk: () => Promise<void>
 }
 
 export type Viewport = {
@@ -168,11 +168,13 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
     [clearInk, setBoard, stickerStyle],
   )
 
-  const transformInk = useCallback(() => {
+  const transformInk = useCallback(async () => {
     const strokes = pendingRef.current
     if (strokes.length === 0) return
+    const snapshot = strokes
     const bounds = getBounds(strokes)
-    const result = recognize(strokes)
+    const result = await recognize(strokes)
+    if (pendingRef.current !== snapshot) return
     if (result.confidence >= recognitionConfidenceThreshold) {
       commitGlyph(result.glyph, bounds)
       return
@@ -344,7 +346,9 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
     if (board.tool === 'pencil' && drawingRef.current) {
       drawingRef.current = false
       clearTimer()
-      timerRef.current = window.setTimeout(transformInk, recognitionPauseMs)
+      timerRef.current = window.setTimeout(() => {
+        void transformInk()
+      }, recognitionPauseMs)
     } else if (board.tool === 'lasso' && lasso.length > 2) {
       const selectedIds = board.letters
         .filter((letter) => {

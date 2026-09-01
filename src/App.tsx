@@ -19,6 +19,7 @@ import {
 } from './board/board'
 import { speakLetters } from './board/speak'
 import { emptyBoard, type Language, type Tool } from './board/types'
+import { useLetterModel } from './recognize/useLetterModel'
 import { letterSizes, type LetterSize } from './theme/tokens'
 
 /** Icons are Material Symbols ligatures — the web stand-in for the SF Symbols in docs/DESIGN.md. */
@@ -40,6 +41,8 @@ const makeId = () =>
   `letter-${Date.now()}-${Math.random().toString(16).slice(2)}`
 
 export default function App() {
+  useLetterModel()
+
   const [board, setBoard] = useState(() => emptyBoard())
   const [stickerStyle, setStickerStyle] =
     useState<StickerStyle>(defaultStickerStyle)
@@ -295,7 +298,9 @@ export default function App() {
               type="button"
               className="icon-button"
               aria-label="I’m done"
-              onClick={() => canvasRef.current?.transformInk()}
+              onClick={() => {
+                void canvasRef.current?.transformInk()
+              }}
             >
               <span className="icon" aria-hidden="true">
                 wand_stars
