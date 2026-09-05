@@ -5,21 +5,34 @@ import {
   type Viewport,
 } from './board/BoardCanvas'
 import {
+  defaultScribbleStyle,
   defaultStickerStyle,
   placeStickerFromGrid,
   selectableBoardFonts,
+  selectableBrushes,
   selectableLetterFills,
+  selectableStrokeWeights,
   setCapsLock,
   setLanguage,
+  setSelectedBrush,
   setSelectedFill,
   setSelectedFont,
   setSelectedSize,
+  setSelectedWeight,
   setTool,
+  type InkStyle,
   type StickerStyle,
 } from './board/board'
 import { speakLetters } from './board/speak'
 import { emptyBoard, type Language, type Tool } from './board/types'
-import { letterSizes, type LetterSize } from './theme/tokens'
+import {
+  letterFills,
+  letterSizes,
+  type BrushKind,
+  type LetterFill,
+  type LetterSize,
+  type StrokeWeight,
+} from './theme/tokens'
 
 /** Icons are Material Symbols ligatures — the web stand-in for the SF Symbols in docs/DESIGN.md. */
 const tools: { value: Tool; label: string; icon: string }[] = [
@@ -39,10 +52,14 @@ const makeId = () =>
   globalThis.crypto?.randomUUID?.() ??
   `letter-${Date.now()}-${Math.random().toString(16).slice(2)}`
 
+const randomLetterFill = (): LetterFill =>
+  letterFills[Math.floor(Math.random() * letterFills.length)]
+
 export default function App() {
   const [board, setBoard] = useState(() => emptyBoard())
   const [stickerStyle, setStickerStyle] =
     useState<StickerStyle>(defaultStickerStyle)
+  const [inkStyle, setInkStyle] = useState<InkStyle>(defaultScribbleStyle)
   const [viewport, setViewport] = useState<Viewport>({
     scale: 1,
     x: 0,
@@ -69,10 +86,14 @@ export default function App() {
   }, [])
 
 
-  const selectedLetters = useMemo(
-    () =>
-      board.letters.filter((letter) => board.selectedIds.includes(letter.id)),
-    [board.letters, board.selectedIds],
+  const selectedItems = useMemo(
+    () => board.items.filter((item) => board.selectedIds.includes(item.id)),
+    [board.items, board.selectedIds],
+  )
+  const selectedLetters = selectedItems.filter((item) => item.kind === 'letter')
+  const selectedItem = selectedItems.length === 1 ? selectedItems[0] : null
+  const selectionHasScribble = selectedItems.some(
+    (item) => item.kind === 'scribble',
   )
 
   const chooseLanguage = (language: Language) => {
@@ -95,6 +116,29 @@ export default function App() {
     })
   }
 
+  const chooseInkStyle = <Key extends keyof InkStyle>(
+    key: Key,
+    value: InkStyle[Key],
+  ) => {
+    setInkStyle((current) => ({ ...current, [key]: value }))
+  }
+
+  const chooseScribbleStyle = <Key extends keyof InkStyle>(
+    key: Key,
+    value: InkStyle[Key],
+  ) => {
+    setInkStyle((current) => ({ ...current, [key]: value }))
+    setBoard((current) => {
+      if (key === 'fill') {
+        return setSelectedFill(current, value as InkStyle['fill'])
+      }
+      if (key === 'brush') {
+        return setSelectedBrush(current, value as BrushKind)
+      }
+      return setSelectedWeight(current, value as StrokeWeight)
+    })
+  }
+
   const addGridSticker = (glyph: string) => {
     const visible = {
       left: -viewport.x / viewport.scale,
@@ -108,7 +152,7 @@ export default function App() {
         makeId(),
         current.capsLock ? glyph : glyph.toLowerCase(),
         visible,
-        stickerStyle,
+        { ...stickerStyle, fill: randomLetterFill() },
       ),
     )
   }
@@ -152,7 +196,7 @@ export default function App() {
           ref={canvasRef}
           board={board}
           setBoard={setBoard}
-          stickerStyle={stickerStyle}
+          inkStyle={inkStyle}
           width={size.width}
           height={size.height}
           onViewportChange={handleViewportChange}
@@ -176,13 +220,17 @@ export default function App() {
               </span>
             </button>
           ))}
-          {selectedLetters.length > 0 && (
+          {selectedItems.length > 0 && (
             <>
               <span className="island-divider" aria-hidden="true" />
               <button
                 type="button"
                 className="icon-button icon-button-accent"
-                aria-label="Speak"
+                aria-label={
+                  selectionHasScribble ? 'Scribbles cannot be spoken' : 'Speak'
+                }
+                aria-disabled={selectionHasScribble}
+                disabled={selectionHasScribble}
                 onClick={() => speakLetters(selectedLetters, board.language)}
               >
                 <span className="icon" aria-hidden="true">
@@ -192,6 +240,46 @@ export default function App() {
             </>
           )}
         </div>
+        {board.tool === 'pencil' && (
+          <section className="island brush-island" aria-label="Stroke style">
+            <span className="panel-label">Color</span>
+            {selectableLetterFills.map((fill, index) => (
+              <button
+                type="button"
+                className="color-swatch"
+                aria-label={`Stroke color ${index + 1}`}
+                aria-pressed={inkStyle.fill === fill}
+                style={{ backgroundColor: fill }}
+                onClick={() => chooseInkStyle('fill', fill)}
+                key={fill}
+              />
+            ))}
+            <span className="panel-label">Stroke</span>
+            {selectableBrushes.map((brush) => (
+              <button
+                type="button"
+                className="btn inspector-chip"
+                aria-pressed={inkStyle.brush === brush}
+                onClick={() => chooseInkStyle('brush', brush)}
+                key={brush}
+              >
+                {brush[0].toUpperCase() + brush.slice(1)}
+              </button>
+            ))}
+            <span className="panel-label">Weight</span>
+            {selectableStrokeWeights.map((weight) => (
+              <button
+                type="button"
+                className="btn inspector-chip"
+                aria-pressed={inkStyle.weight === weight}
+                onClick={() => chooseInkStyle('weight', weight)}
+                key={weight}
+              >
+                {weight}
+              </button>
+            ))}
+          </section>
+        )}
         {board.tool === 'addSticker' && (
           <section className="island letter-island" aria-label="Add a letter">
             {keyboardRows.map((row, rowIndex) => (
@@ -231,48 +319,91 @@ export default function App() {
             ))}
           </section>
         )}
-        {selectedLetters.length === 1 && board.tool === 'hand' && (
+        {selectedItem && board.tool === 'hand' && (
           <section
             className="island inspector-island"
             aria-label="Sticker style"
           >
-            <span className="panel-label">Size</span>
-            {(Object.keys(letterSizes) as LetterSize[]).map((sizeName) => (
-              <button
-                type="button"
-                className="btn inspector-chip"
-                aria-pressed={selectedLetters[0].size === sizeName}
-                onClick={() => chooseStyle('size', sizeName)}
-                key={sizeName}
-              >
-                {sizeName}
-              </button>
-            ))}
-            <span className="panel-label">Color</span>
-            {selectableLetterFills.map((fill, index) => (
-              <button
-                type="button"
-                className="color-swatch"
-                aria-label={`Letter color ${index + 1}`}
-                aria-pressed={selectedLetters[0].fill === fill}
-                style={{ backgroundColor: fill }}
-                onClick={() => chooseStyle('fill', fill)}
-                key={fill}
-              />
-            ))}
-            <span className="panel-label">Font</span>
-            {selectableBoardFonts.map((fontFamily) => (
-              <button
-                type="button"
-                className="btn inspector-chip"
-                aria-pressed={selectedLetters[0].fontFamily === fontFamily}
-                style={{ fontFamily }}
-                onClick={() => chooseStyle('fontFamily', fontFamily)}
-                key={fontFamily}
-              >
-                {fontFamily}
-              </button>
-            ))}
+            {selectedItem.kind === 'letter' ? (
+              <>
+                <span className="panel-label">Size</span>
+                {(Object.keys(letterSizes) as LetterSize[]).map((sizeName) => (
+                  <button
+                    type="button"
+                    className="btn inspector-chip"
+                    aria-pressed={selectedItem.size === sizeName}
+                    onClick={() => chooseStyle('size', sizeName)}
+                    key={sizeName}
+                  >
+                    {sizeName}
+                  </button>
+                ))}
+                <span className="panel-label">Color</span>
+                {selectableLetterFills.map((fill, index) => (
+                  <button
+                    type="button"
+                    className="color-swatch"
+                    aria-label={`Letter color ${index + 1}`}
+                    aria-pressed={selectedItem.fill === fill}
+                    style={{ backgroundColor: fill }}
+                    onClick={() => chooseStyle('fill', fill)}
+                    key={fill}
+                  />
+                ))}
+                <span className="panel-label">Font</span>
+                {selectableBoardFonts.map((fontFamily) => (
+                  <button
+                    type="button"
+                    className="btn inspector-chip"
+                    aria-pressed={selectedItem.fontFamily === fontFamily}
+                    style={{ fontFamily }}
+                    onClick={() => chooseStyle('fontFamily', fontFamily)}
+                    key={fontFamily}
+                  >
+                    {fontFamily}
+                  </button>
+                ))}
+              </>
+            ) : (
+              <>
+                <span className="panel-label">Color</span>
+                {selectableLetterFills.map((fill, index) => (
+                  <button
+                    type="button"
+                    className="color-swatch"
+                    aria-label={`Scribble color ${index + 1}`}
+                    aria-pressed={selectedItem.fill === fill}
+                    style={{ backgroundColor: fill }}
+                    onClick={() => chooseScribbleStyle('fill', fill)}
+                    key={fill}
+                  />
+                ))}
+                <span className="panel-label">Stroke</span>
+                {selectableBrushes.map((brush) => (
+                  <button
+                    type="button"
+                    className="btn inspector-chip"
+                    aria-pressed={selectedItem.brush === brush}
+                    onClick={() => chooseScribbleStyle('brush', brush)}
+                    key={brush}
+                  >
+                    {brush[0].toUpperCase() + brush.slice(1)}
+                  </button>
+                ))}
+                <span className="panel-label">Weight</span>
+                {selectableStrokeWeights.map((weight) => (
+                  <button
+                    type="button"
+                    className="btn inspector-chip"
+                    aria-pressed={selectedItem.weight === weight}
+                    onClick={() => chooseScribbleStyle('weight', weight)}
+                    key={weight}
+                  >
+                    {weight}
+                  </button>
+                ))}
+              </>
+            )}
           </section>
         )}
         <div className="island zoom-island">
@@ -294,8 +425,8 @@ export default function App() {
             <button
               type="button"
               className="icon-button"
-              aria-label="I’m done"
-              onClick={() => canvasRef.current?.transformInk()}
+              aria-label="Make sticker"
+              onClick={() => canvasRef.current?.commitScribble()}
             >
               <span className="icon" aria-hidden="true">
                 wand_stars

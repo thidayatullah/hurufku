@@ -1,5 +1,5 @@
 :root {
-  /* Surfaces — Color Hunt "kids" palette 696fc7 / a7aae1 / f5d3c4 / f2aebb */
+  /* Surfaces use soft classroom chrome; board objects use the rainbow palette. */
   --paper: #fdf7f3;
   --toolbar: #f5d3c4;
   --panel: #fbe7de;
@@ -7,9 +7,9 @@
   --ink: #2e2b40;
   --muted: #6b6785;
   --border: #a7aae1;
-  --accent: #5f64c0;
+  --accent: #0055da;
   --accent-ink: #ffffff;
-  --accent-tint: #e8e9f8;
+  --accent-tint: #e5efff;
   --accent-soft: #f2aebb;
   --danger: #b3324a;
 
@@ -210,7 +210,7 @@ body {
 
 
 .panel-label,
-.picker-label {
+.brush-label {
   flex: 0 0 auto;
   color: var(--muted);
   font-size: 0.875rem;
@@ -322,7 +322,8 @@ body {
 }
 
 /* Secondary to the tool island: sits low, tinted, and with a lighter shadow. */
-.inspector-island {
+.inspector-island,
+.brush-island {
   left: 50%;
   bottom: calc(var(--tap-min) + var(--space-3) * 2);
   transform: translateX(-50%);
@@ -348,27 +349,6 @@ body {
   position: relative;
   overflow: hidden;
   touch-action: none;
-}
-
-.glyph-picker {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-control);
-  background: var(--control-surface);
-  transition:
-    opacity var(--duration) var(--ease),
-    transform var(--duration) var(--ease);
-}
-
-.ink-picker {
-  position: absolute;
-  z-index: 2;
-  border: 2px solid var(--accent-soft);
-  max-width: calc(100% - 2 * var(--space-4));
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 14%, transparent);
 }
 
 @media (max-width: 720px) {

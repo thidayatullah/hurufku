@@ -13,7 +13,7 @@ Design for the dual audience as one language: kids get the board and fat tools; 
 
 **Classroom marker pad** — quiet paper, clear ink, one calm accent. The board is the product; UI chrome stays thin and secondary.
 
-Palette source: Color Hunt “kids” palette [`696fc7 a7aae1 f5d3c4 f2aebb`](https://colorhunt.co/palette/696fc7a7aae1f5d3c4f2aebb) — peach chrome, periwinkle accent, warm near-white board.
+Palette direction: soft classroom chrome, warm near-white board, and bright rainbow fills for letter and scribble stickers.
 
 Not a toy store, not a dashboard, not purple-glow “AI kids app.”
 
@@ -23,7 +23,7 @@ Not a toy store, not a dashboard, not purple-glow “AI kids app.”
 2. **Touch-first** — interactive targets ≥ `--tap-min` (48px); prefer 56px on tablet-primary controls.
 3. **Clear, not cute** — high contrast and simple shapes. Controls kids use directly are glyph icons, since preschoolers cannot read; every icon-only control carries an `aria-label`. No tooltips and no emoji in icons. Teacher-facing controls (language) keep text labels.
 4. **One accent job** — accent color means active / confirm / speak, not decoration.
-5. **Fixed letter palette** — letter fills come from the approved set only (max 8).
+5. **Fixed board palette** — letter and scribble fills come from the approved set only (max 8).
 6. **Reuse the kit** — new UI must use an existing component pattern or extend this doc first.
 7. **Short motion** — 150–200ms; feedback, not ornament.
 8. **No card chrome** — avoid bordered/shadowed cards unless they wrap a necessary interaction (e.g. letter picker).
@@ -52,13 +52,19 @@ Implemented in `src/index.css` (`:root`) and `src/theme/tokens.ts` (canvas / JS)
 | `--font-brand` / `--font-ui` | Fredoka (title) / Lexend (UI) |
 | `--space-*` | 4 / 8 / 12 / 16 / 24 |
 
-### Letter fills (board only)
+### Board fills
 
-Use only these for letter objects (see `letterFills` in `src/theme/tokens.ts`):
+Use only these for letter and scribble objects (see `letterFills` in `src/theme/tokens.ts`):
 
-- Indigo, raspberry, orange, teal, green, purple, blue, cocoa
+- Bubblegum `#FF0052`
+- Sunshine `#FFD400`
+- Mint `#00C68D`
+- Crayon blue `#0055DA`
+- Tangerine `#FF7A00`
+- Grape `#8A2BFF`
+- Sky pop `#00D9FF`
 
-Each fill is dark enough to stay readable on `--paper`; the palette’s pastels stay in chrome.
+The palette is intentionally bright: rainbow, kids, happy. Yellow is used as a playful object fill, not small body text.
 
 Chrome must not rainbow; letters may.
 
@@ -81,7 +87,7 @@ Kid-facing controls use a glyph icon font, never emoji or bitmaps. SF Symbols is
 | Add Sticker | `textformat` | `text_fields` |
 | Reset zoom | `arrow.up.left.and.down.right.magnifyingglass` | `zoom_out_map` |
 | Speak | `person.wave.2` | `record_voice_over` |
-| I’m done | `wand.and.sparkles` | `wand_stars` |
+| Make sticker | `wand.and.sparkles` | `wand_stars` |
 | Caps lock on / off | `textformat.size.larger` / `textformat.size.smaller` | `uppercase` / `lowercase` |
 
 Icon buttons are square at `--tap-min`, borderless inside an island, active state = `--accent-tint` fill with `--accent` glyph.
@@ -91,11 +97,12 @@ Icon buttons are square at `--tap-min`, borderless inside an island, active stat
 Chrome is split between a slim header and floating islands over the board, so the canvas stays the product.
 
 - **Header** (`--toolbar-height`, `--toolbar` surface, bottom border `--border`): wordmark plus the language group only. The wordmark hides below 720px.
-- **Tool island** — top center of the board: Hand, Pencil, Eraser, Lasso, Add Sticker in one group. Pencil is selected by default. Speak joins this group after a vertical divider, only while letters are selected. Eraser stays selected until another tool is chosen; tapping a sticker deletes that letter.
+- **Tool island** — top center of the board: Hand, Pencil, Eraser, Lasso, Add Sticker in one group. Pencil is selected by default. Speak joins this group after a vertical divider while something is selected; it is disabled if the selection includes a scribble. Eraser stays selected until another tool is chosen; tapping a selected sticker deletes the selected set, while tapping an unselected sticker deletes only that sticker.
 - **Letter island** — bottom center while Add Sticker is active: a keyboard-shaped A–Z keypad with caps lock. Shares the slot with the inspector island, which never shows at the same time.
-- **Inspector island** — bottom center, above the bottom row, only with one sticker selected in Hand: size, color, font. It is deliberately subordinate to the tool island — lower on screen, `--panel` tint, lighter shadow — because it edits one letter rather than steering the board.
+- **Brush island** — bottom center while Pencil is active: stroke color, stroke type (pencil, crayon, chalk, marker), and weight. It sets defaults for new scribbles only.
+- **Inspector island** — bottom center, above the bottom row, only with one sticker selected in Hand: letters expose size, color, font; scribbles expose color, stroke type, and stroke weight. Scribble edits also become the defaults for the next scribble. It is deliberately subordinate to the tool island — lower on screen, `--panel` tint, lighter shadow — because it edits one sticker rather than steering the board.
 - **Zoom island** — bottom left: current zoom percentage and Reset zoom, which is disabled at 100% with no pan.
-- **Action island** — bottom right, contextual: “I’m done” only while ink waits to be recognized.
+- **Action island** — bottom right, contextual: “Make sticker” only while ink waits to become a scribble sticker.
 - Islands use `--control-surface`, `--radius-island`, a hairline border, and one soft shadow. This is the one place card chrome is allowed, since islands wrap interaction.
 
 ### Buttons
@@ -113,16 +120,16 @@ All buttons: min-height `--tap-min`, padding from space scale, radius `--radius-
 Two `.btn` siblings in a `role="group"`; pressed state uses accent fill + `--accent-ink`.
 Each option includes a flag and a readable label. **🇮🇩 Indonesia** comes first and is selected by default; **🇬🇧 English** is second.
 
-### Letter picker and Add Sticker grid
+### Add Sticker grid
 
 - Large glyph tiles (≥ 56×56), high contrast on `--paper`
-- The recognition picker uses a short list of candidates; the Add Sticker panel uses the full A–Z/a–z grid
+- The Add Sticker panel uses the full A–Z/a–z grid
 - Add Sticker starts with Caps lock on (A–Z), matching typical preschool classroom glyphs
 - Keys run in reading order, left to right and top to bottom
 - Taps continue the current row and wrap to a new line at the edge of the visible board, so letters never land off screen
 - Caps lock sits left of the middle row like a real keyboard and shows the case currently in use (`uppercase` / `lowercase`), never an arrow; changing it never changes existing stickers
 - The Add Sticker keys sit in a floating island at the bottom of the board, shaped like a keyboard (rows of 10 / 9 / 7) but ordered A–Z, never QWERTY
-- Both interactions share the same glyph-tile and button tokens
+- The grid uses the same glyph-tile and button tokens
 - Optional card surface here is OK (interaction container)
 
 ### Board navigation
@@ -134,6 +141,8 @@ Each option includes a flag and a readable label. **🇮🇩 Indonesia** comes f
 ### Selection on canvas
 
 - One selection language everywhere: same handle size, same outline color (`--accent`)
+- Lasso multi-selection persists when switching to Hand; dragging any selected object moves the whole selected group.
+- Lasso multi-selection persists when switching to Eraser; tapping any selected object deletes the whole selected group.
 - Resize/move handles ≥ touch minimum
 
 ### Speak / confirm

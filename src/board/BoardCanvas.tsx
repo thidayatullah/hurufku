@@ -9,36 +9,37 @@ import {
   type Dispatch,
   type SetStateAction,
 } from 'react'
-import { Layer, Line, Rect, Stage, Text } from 'react-konva'
+import { Group, Layer, Line, Rect, Stage, Text } from 'react-konva'
 import type Konva from 'konva'
 import type { KonvaEventObject } from 'konva/lib/Node'
 import {
+  addItem,
   alignSelectedStickers,
-  getLetterDimensions,
-  moveSticker,
+  createScribble,
+  getItemDimensions,
+  moveItem,
+  moveItems,
   pointInPolygon,
-  replacePendingInkWithSticker,
-  removeSticker,
+  removeItems,
   setSelection,
   setTool,
-  type StickerStyle,
+  type InkStyle,
 } from './board'
 import { clearGlyphWidthCache } from './measure'
-import { recognize } from './recognize'
-import type { Board, BoardPoint, InkBounds, Stroke } from './types'
+import type { Board, BoardItem, BoardPoint, InkBounds, Stroke } from './types'
 import {
   boardAccent,
-  boardInk,
+  brushes,
+  inkSettleMs,
   maxBoardScale,
   minBoardScale,
-  recognitionConfidenceThreshold,
-  recognitionPauseMs,
+  strokeWeights,
 } from '../theme/tokens'
 
 type BoardCanvasProps = {
   board: Board
   setBoard: Dispatch<SetStateAction<Board>>
-  stickerStyle: StickerStyle
+  inkStyle: InkStyle
   width: number
   height: number
   onViewportChange: (viewport: Viewport) => void
@@ -48,7 +49,7 @@ type BoardCanvasProps = {
 export type BoardCanvasHandle = {
   clearInk: () => void
   resetZoom: () => void
-  transformInk: () => void
+  commitScribble: () => void
 }
 
 export type Viewport = {
@@ -79,14 +80,25 @@ const getBounds = (strokes: Stroke[]): InkBounds => {
 
 const makeId = () =>
   globalThis.crypto?.randomUUID?.() ??
-  `letter-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  `item-${Date.now()}-${Math.random().toString(16).slice(2)}`
+
+const brushStrokeWidth = (style: InkStyle) =>
+  strokeWeights[style.weight] * brushes[style.brush].widthScale
+
+const selectedOutlinePadding = 4
+
+type SelectionDrag = {
+  anchorId: string
+  ids: string[]
+  positions: Map<string, BoardPoint>
+}
 
 export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
   function BoardCanvas(
     {
       board,
       setBoard,
-      stickerStyle,
+      inkStyle,
       width,
       height,
       onViewportChange,
@@ -105,13 +117,10 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
   const viewportRef = useRef(initialViewport)
   const drawingRef = useRef(false)
   const lassoRef = useRef<BoardPoint[]>([])
+  const selectionDragRef = useRef<SelectionDrag | null>(null)
   const [viewport, setViewport] = useState(initialViewport)
   const [pendingStrokes, setPendingStrokes] = useState<Stroke[]>([])
   const [lasso, setLasso] = useState<BoardPoint[]>([])
-  const [picker, setPicker] = useState<{
-    alternatives: string[]
-    bounds: InkBounds
-  } | null>(null)
   const [fontsLoaded, setFontsLoaded] = useState(false)
 
   const updateViewport = useCallback(
@@ -148,37 +157,18 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
     clearTimer()
     pendingRef.current = []
     setPendingStrokes([])
-    setPicker(null)
     onPendingInkChange(false)
   }, [onPendingInkChange])
 
-  const commitGlyph = useCallback(
-    (glyph: string, bounds: InkBounds) => {
-      setBoard((current) =>
-        replacePendingInkWithSticker(
-          current,
-          makeId(),
-          glyph,
-          bounds,
-          stickerStyle,
-        ),
-      )
-      clearInk()
-    },
-    [clearInk, setBoard, stickerStyle],
-  )
-
-  const transformInk = useCallback(() => {
+  const commitScribble = useCallback(() => {
     const strokes = pendingRef.current
     if (strokes.length === 0) return
     const bounds = getBounds(strokes)
-    const result = recognize(strokes)
-    if (result.confidence >= recognitionConfidenceThreshold) {
-      commitGlyph(result.glyph, bounds)
-      return
-    }
-    setPicker({ alternatives: result.alternatives, bounds })
-  }, [commitGlyph])
+    setBoard((current) =>
+      addItem(current, createScribble(makeId(), strokes, bounds, inkStyle)),
+    )
+    clearInk()
+  }, [clearInk, inkStyle, setBoard])
 
   const resetZoom = useCallback(() => {
     updateViewport(initialViewport)
@@ -186,8 +176,8 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
 
   useImperativeHandle(
     ref,
-    () => ({ clearInk, resetZoom, transformInk }),
-    [clearInk, resetZoom, transformInk],
+    () => ({ clearInk, resetZoom, commitScribble }),
+    [clearInk, resetZoom, commitScribble],
   )
 
   useEffect(() => () => clearTimer(), [])
@@ -315,12 +305,7 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
       setBoard((current) => setSelection(current, []))
     } else if (board.tool === 'pencil') {
       clearTimer()
-      if (picker) {
-        updatePending([[point]])
-        setPicker(null)
-      } else {
-        updatePending([...pendingRef.current, [point]])
-      }
+      updatePending([...pendingRef.current, [point]])
       drawingRef.current = true
     } else if (board.tool === 'lasso') {
       setLassoPoints([point])
@@ -344,15 +329,15 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
     if (board.tool === 'pencil' && drawingRef.current) {
       drawingRef.current = false
       clearTimer()
-      timerRef.current = window.setTimeout(transformInk, recognitionPauseMs)
+      timerRef.current = window.setTimeout(commitScribble, inkSettleMs)
     } else if (board.tool === 'lasso' && lasso.length > 2) {
-      const selectedIds = board.letters
-        .filter((letter) => {
-          const dimensions = getLetterDimensions(letter)
+      const selectedIds = board.items
+        .filter((item) => {
+          const dimensions = getItemDimensions(item)
           return pointInPolygon(
             {
-              x: letter.x + dimensions.width / 2,
-              y: letter.y + dimensions.height / 2,
+              x: item.x + dimensions.width / 2,
+              y: item.y + dimensions.height / 2,
             },
             lasso,
           )
@@ -383,16 +368,141 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
     })
   }
 
-
-  const pickerStyle = picker
-    ? {
-        left: picker.bounds.x * viewport.scale + viewport.x,
-        top:
-          (picker.bounds.y + picker.bounds.height) * viewport.scale +
-          viewport.y +
-          8,
+  const renderItem = (item: BoardItem) => {
+    const dimensions = getItemDimensions(item)
+    const selected = board.selectedIds.includes(item.id)
+    const canListen = board.tool !== 'pencil' && board.tool !== 'lasso'
+    const onItemPointerDown = (event: KonvaEventObject<PointerEvent>) => {
+      event.cancelBubble = true
+      if (board.tool === 'eraser') {
+        const ids = selected ? board.selectedIds : [item.id]
+        setBoard((current) => removeItems(current, ids))
+        return
       }
-    : undefined
+      if (board.tool !== 'hand') {
+        clearInk()
+        setLassoPoints([])
+      }
+      setBoard((current) => {
+        const next = setTool(current, 'hand')
+        return selected ? next : setSelection(next, [item.id])
+      })
+    }
+    const onItemDragStart = (event: KonvaEventObject<DragEvent>) => {
+      event.cancelBubble = true
+      const ids = selected ? board.selectedIds : [item.id]
+      selectionDragRef.current = {
+        anchorId: item.id,
+        ids,
+        positions: new Map(
+          board.items
+            .filter((boardItem) => ids.includes(boardItem.id))
+            .map((boardItem) => [
+              boardItem.id,
+              { x: boardItem.x, y: boardItem.y },
+            ]),
+        ),
+      }
+    }
+    const onItemDragMove = (event: KonvaEventObject<DragEvent>) => {
+      event.cancelBubble = true
+      const drag = selectionDragRef.current
+      const anchorPosition = drag?.positions.get(drag.anchorId)
+      if (!drag || !anchorPosition) {
+        setBoard((current) =>
+          moveItem(current, item.id, {
+            x: event.target.x(),
+            y: event.target.y(),
+          }),
+        )
+        return
+      }
+      const delta = {
+        x: event.target.x() - anchorPosition.x,
+        y: event.target.y() - anchorPosition.y,
+      }
+      setBoard((current) =>
+        moveItems(
+          current,
+          new Map(
+            drag.ids.map((id) => {
+              const start = drag.positions.get(id) ?? anchorPosition
+              return [id, { x: start.x + delta.x, y: start.y + delta.y }]
+            }),
+          ),
+        ),
+      )
+    }
+    const onItemDragEnd = (event: KonvaEventObject<DragEvent>) => {
+      onItemDragMove(event)
+      selectionDragRef.current = null
+    }
+
+    return (
+      <Fragment key={item.id}>
+        {selected && (
+          <Rect
+            x={item.x - selectedOutlinePadding}
+            y={item.y - selectedOutlinePadding}
+            width={dimensions.width + selectedOutlinePadding * 2}
+            height={dimensions.height + selectedOutlinePadding * 2}
+            stroke={boardAccent}
+            strokeWidth={3 / viewport.scale}
+            dash={[8 / viewport.scale, 5 / viewport.scale]}
+            listening={false}
+          />
+        )}
+        {item.kind === 'letter' ? (
+          <Text
+            text={item.glyph}
+            x={item.x}
+            y={item.y}
+            fontSize={dimensions.height}
+            fontFamily={item.fontFamily}
+            fill={item.fill}
+            draggable={board.tool === 'hand'}
+            listening={canListen}
+            onPointerDown={onItemPointerDown}
+            onDragStart={onItemDragStart}
+            onDragMove={onItemDragMove}
+            onDragEnd={onItemDragEnd}
+          />
+        ) : (
+          <Group
+            x={item.x}
+            y={item.y}
+            draggable={board.tool === 'hand'}
+            listening={canListen}
+            onPointerDown={onItemPointerDown}
+            onDragStart={onItemDragStart}
+            onDragMove={onItemDragMove}
+            onDragEnd={onItemDragEnd}
+          >
+            {item.strokes.map((stroke, index) => {
+              const brush = brushes[item.brush]
+              const strokeWidth = brushStrokeWidth(item)
+              return (
+                <Line
+                  key={`scribble-${item.id}-${index}`}
+                  points={flattenPoints(stroke)}
+                  stroke={item.fill}
+                  opacity={brush.opacity}
+                  strokeWidth={strokeWidth}
+                  hitStrokeWidth={Math.max(strokeWidth, 24)}
+                  lineCap={brush.lineCap}
+                  lineJoin={brush.lineJoin}
+                  tension={brush.tension}
+                />
+              )
+            })}
+          </Group>
+        )}
+      </Fragment>
+    )
+  }
+
+  const pendingBrush = brushes[inkStyle.brush]
+  const pendingStrokeWidth = brushStrokeWidth(inkStyle)
 
   return (
     <div className="canvas-shell" style={{ width, height }}>
@@ -421,67 +531,17 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
         onWheel={onWheel}
       >
         <Layer key={fontsLoaded ? 'board-fonts' : 'board-fallback'}>
-          {board.letters.map((letter) => {
-            const dimensions = getLetterDimensions(letter)
-            const selected = board.selectedIds.includes(letter.id)
-            return (
-              <Fragment key={letter.id}>
-                {selected && (
-                  <Rect
-                    x={letter.x - 4}
-                    y={letter.y - 4}
-                    width={dimensions.width + 8}
-                    height={dimensions.height + 8}
-                    stroke={boardAccent}
-                    strokeWidth={3 / viewport.scale}
-                    dash={[8 / viewport.scale, 5 / viewport.scale]}
-                    listening={false}
-                  />
-                )}
-                <Text
-                  text={letter.glyph}
-                  x={letter.x}
-                  y={letter.y}
-                  fontSize={dimensions.height}
-                  fontFamily={letter.fontFamily}
-                  fill={letter.fill}
-                  draggable={board.tool !== 'eraser'}
-                  onPointerDown={(event) => {
-                    event.cancelBubble = true
-                    if (board.tool === 'eraser') {
-                      setBoard((current) => removeSticker(current, letter.id))
-                      return
-                    }
-                    if (board.tool !== 'hand') {
-                      clearInk()
-                      setLassoPoints([])
-                    }
-                    setBoard((current) =>
-                      setSelection(setTool(current, 'hand'), [letter.id]),
-                    )
-                  }}
-                  onDragMove={(event) => {
-                    event.cancelBubble = true
-                    setBoard((current) =>
-                      moveSticker(current, letter.id, {
-                        x: event.target.x(),
-                        y: event.target.y(),
-                      }),
-                    )
-                  }}
-                />
-              </Fragment>
-            )
-          })}
+          {board.items.map(renderItem)}
           {pendingStrokes.map((stroke, index) => (
             <Line
               key={`ink-${index}`}
               points={flattenPoints(stroke)}
-              stroke={boardInk}
-              strokeWidth={8 / viewport.scale}
-              lineCap="round"
-              lineJoin="round"
-              tension={0.2}
+              stroke={inkStyle.fill}
+              opacity={pendingBrush.opacity}
+              strokeWidth={pendingStrokeWidth}
+              lineCap={pendingBrush.lineCap}
+              lineJoin={pendingBrush.lineJoin}
+              tension={pendingBrush.tension}
               listening={false}
             />
           ))}
@@ -497,21 +557,6 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
           )}
         </Layer>
       </Stage>
-      {picker && (
-        <div className="glyph-picker ink-picker" style={pickerStyle}>
-          <span className="picker-label">Choose a letter</span>
-          {picker.alternatives.map((glyph) => (
-            <button
-              type="button"
-              className="btn glyph-tile"
-              key={glyph}
-              onClick={() => commitGlyph(glyph, picker.bounds)}
-            >
-              {glyph}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   )
   },

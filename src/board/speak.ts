@@ -1,12 +1,12 @@
-import type { Language, Letter } from './types'
-import { sortLettersLeftToRight } from './board'
+import type { Language, LetterItem } from './types'
+import { sortItemsLeftToRight } from './board'
 
 const preferredLanguage: Record<Language, string> = {
   id: 'id-ID',
   en: 'en-US',
 }
 
-export const speakLetters = (letters: Letter[], language: Language) => {
+export const speakLetters = (letters: LetterItem[], language: Language) => {
   if (!('speechSynthesis' in window) || letters.length === 0) return
 
   const lang = preferredLanguage[language]
@@ -20,7 +20,7 @@ export const speakLetters = (letters: Letter[], language: Language) => {
     return voiceLanguage === language || voiceLanguage.startsWith(family)
   })
   const utterance = new SpeechSynthesisUtterance(
-    sortLettersLeftToRight(letters)
+    sortItemsLeftToRight(letters)
       .map(({ glyph }) => glyph)
       .join(''),
   )
