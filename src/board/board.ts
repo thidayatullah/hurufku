@@ -147,6 +147,33 @@ export const replacePendingInkWithSticker = (
     createSticker(id, glyph, { x: bounds.x, y: bounds.y }, style),
   )
 
+export const replacePendingInkWithStickerRow = (
+  board: Board,
+  ids: string[],
+  text: string,
+  bounds: InkBounds,
+  style: StickerStyle,
+): Board => {
+  let nextX = bounds.x
+  const letters = text.split('').map((glyph, index) => {
+    const letter = createSticker(
+      ids[index],
+      glyph,
+      { x: nextX, y: bounds.y },
+      style,
+    )
+    nextX += getLetterDimensions(letter).width + letterGap
+    return letter
+  })
+
+  return {
+    ...board,
+    letters: [...board.letters, ...letters],
+    lastPlacedStickerId: letters.at(-1)?.id ?? board.lastPlacedStickerId,
+    selectedIds: letters.map(({ id }) => id),
+  }
+}
+
 export const setTool = (board: Board, tool: Tool): Board => ({
   ...board,
   tool,

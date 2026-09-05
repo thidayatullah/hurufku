@@ -1,8 +1,8 @@
 /** Visual tokens shared with canvas / JS. CSS mirrors live in `src/index.css`. */
 
 export const toolbarHeight = 56
-export const recognitionPauseMs = 1000
-export const recognitionConfidenceThreshold = 0.72
+export const recognitionPauseMs = 3000
+export const recognitionConfidenceThreshold = 0.8
 export const minBoardScale = 0.5
 export const maxBoardScale = 2.5
 export const letterGap = 16

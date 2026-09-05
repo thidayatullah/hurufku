@@ -13,6 +13,7 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'models/**/*'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,bin,txt,md}'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: ({ url }) =>

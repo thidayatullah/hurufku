@@ -368,7 +368,32 @@ body {
   z-index: 2;
   border: 2px solid var(--accent-soft);
   max-width: calc(100% - 2 * var(--space-4));
+  overflow-x: auto;
   box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+.recognized-text-input {
+  flex: 0 0 160px;
+  width: 160px;
+  height: var(--tap-min);
+  padding-inline: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-brand);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.text-candidate {
+  flex: 0 0 auto;
+  height: var(--tap-min);
+  font-family: var(--font-brand);
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 @media (max-width: 720px) {

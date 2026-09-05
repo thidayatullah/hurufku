@@ -1,134 +1,84 @@
 import type { Stroke } from '../board/types'
 
-const OUTPUT_SIZE = 28
-const CANVAS_SIZE = 112
-const DEFAULT_MARGIN = 0.2
-
-type RasterizeConfig = {
-  outputSize?: number
-  marginRatio?: number
-  invertInk?: boolean
-  rotate90Clockwise?: boolean
-  flipHorizontal?: boolean
-}
+export const MODEL_IMAGE_WIDTH = 256
+export const MODEL_IMAGE_HEIGHT = 64
 
 type PixelBuffer = Float32Array<ArrayBufferLike>
-
 type CanvasLike = HTMLCanvasElement | OffscreenCanvas
 
-const makeCanvas = (size: number): CanvasLike => {
+const makeCanvas = (): CanvasLike => {
   if (typeof OffscreenCanvas !== 'undefined') {
-    return new OffscreenCanvas(size, size)
+    return new OffscreenCanvas(MODEL_IMAGE_WIDTH, MODEL_IMAGE_HEIGHT)
   }
   const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
+  canvas.width = MODEL_IMAGE_WIDTH
+  canvas.height = MODEL_IMAGE_HEIGHT
   return canvas
 }
 
-const getContext = (canvas: CanvasLike): OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D => {
+const getContext = (
+  canvas: CanvasLike,
+): OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D => {
   const context = canvas.getContext('2d', { willReadFrequently: true })
-  if (!context) {
-    throw new Error('2D canvas is unavailable')
-  }
+  if (!context) throw new Error('2D canvas is unavailable')
   return context
 }
 
-const rotate90Clockwise = (pixels: PixelBuffer, size: number): PixelBuffer => {
-  const next: PixelBuffer = new Float32Array(pixels.length)
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      const from = y * size + x
-      const to = x * size + (size - 1 - y)
-      next[to] = pixels[from]
-    }
-  }
-  return next
-}
-
-const flipHorizontally = (pixels: PixelBuffer, size: number): PixelBuffer => {
-  const next: PixelBuffer = new Float32Array(pixels.length)
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      const from = y * size + x
-      const to = y * size + (size - 1 - x)
-      next[to] = pixels[from]
-    }
-  }
-  return next
-}
-
-const nonEmptyStrokes = (strokes: Stroke[]): Stroke[] =>
-  strokes.filter((stroke) => stroke.length > 0)
-
-export const rasterizeStrokes = (
-  strokes: Stroke[],
-  config: RasterizeConfig = {},
-): PixelBuffer => {
-  const outputSize = config.outputSize ?? OUTPUT_SIZE
-  const marginRatio = config.marginRatio ?? DEFAULT_MARGIN
-  const invertInk = config.invertInk ?? true
-  const rotate = config.rotate90Clockwise ?? true
-  const flipHorizontal = config.flipHorizontal ?? true
-
-  const validStrokes = nonEmptyStrokes(strokes)
-  if (validStrokes.length === 0) {
-    return new Float32Array(outputSize * outputSize)
-  }
+export const rasterizeStrokes = (strokes: Stroke[]): PixelBuffer => {
+  const validStrokes = strokes.filter((stroke) => stroke.length > 0)
+  const pixels: PixelBuffer = new Float32Array(
+    MODEL_IMAGE_WIDTH * MODEL_IMAGE_HEIGHT,
+  )
+  if (validStrokes.length === 0) return pixels
 
   const points = validStrokes.flat()
-  const minX = Math.min(...points.map((point) => point.x))
-  const maxX = Math.max(...points.map((point) => point.x))
-  const minY = Math.min(...points.map((point) => point.y))
-  const maxY = Math.max(...points.map((point) => point.y))
+  const minX = Math.min(...points.map(({ x }) => x))
+  const maxX = Math.max(...points.map(({ x }) => x))
+  const minY = Math.min(...points.map(({ y }) => y))
+  const maxY = Math.max(...points.map(({ y }) => y))
+  const inkWidth = Math.max(1, maxX - minX)
+  const inkHeight = Math.max(1, maxY - minY)
+  const horizontalMargin = 12
+  const verticalMargin = 6
+  const scale = Math.min(
+    (MODEL_IMAGE_WIDTH - horizontalMargin * 2) / inkWidth,
+    (MODEL_IMAGE_HEIGHT - verticalMargin * 2) / inkHeight,
+  )
+  const offsetX = (MODEL_IMAGE_WIDTH - inkWidth * scale) / 2
+  const offsetY = (MODEL_IMAGE_HEIGHT - inkHeight * scale) / 2
 
-  const width = Math.max(1, maxX - minX)
-  const height = Math.max(1, maxY - minY)
-  const side = Math.max(width, height)
-  const margin = side * marginRatio
-  const sourceSide = side + margin * 2
-  const drawScale = CANVAS_SIZE / sourceSide
-
-  const sourceCanvas = makeCanvas(CANVAS_SIZE)
-  const sourceContext = getContext(sourceCanvas)
-  sourceContext.fillStyle = '#000'
-  sourceContext.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
-  sourceContext.strokeStyle = '#fff'
-  sourceContext.lineCap = 'round'
-  sourceContext.lineJoin = 'round'
-  sourceContext.lineWidth = Math.max(2, CANVAS_SIZE * 0.11 * drawScale)
-
-  const offsetX = (sourceSide - width) / 2
-  const offsetY = (sourceSide - height) / 2
+  const canvas = makeCanvas()
+  const context = getContext(canvas)
+  context.fillStyle = '#fff'
+  context.fillRect(0, 0, MODEL_IMAGE_WIDTH, MODEL_IMAGE_HEIGHT)
+  context.strokeStyle = '#000'
+  context.lineCap = 'round'
+  context.lineJoin = 'round'
+  context.lineWidth = Math.max(2, Math.min(7, 8 * scale))
 
   validStrokes.forEach((stroke) => {
-    sourceContext.beginPath()
+    context.beginPath()
     stroke.forEach((point, index) => {
-      const x = (point.x - minX + offsetX) * drawScale
-      const y = (point.y - minY + offsetY) * drawScale
-      if (index === 0) {
-        sourceContext.moveTo(x, y)
-      } else {
-        sourceContext.lineTo(x, y)
-      }
+      const x = (point.x - minX) * scale + offsetX
+      const y = (point.y - minY) * scale + offsetY
+      if (index === 0) context.moveTo(x, y)
+      else context.lineTo(x, y)
     })
-    sourceContext.stroke()
+    context.stroke()
   })
 
-  const outputCanvas = makeCanvas(outputSize)
-  const outputContext = getContext(outputCanvas)
-  outputContext.drawImage(sourceCanvas as CanvasImageSource, 0, 0, outputSize, outputSize)
-  const imageData = outputContext.getImageData(0, 0, outputSize, outputSize)
-
-  const pixels: PixelBuffer = new Float32Array(outputSize * outputSize)
-  for (let i = 0; i < pixels.length; i += 1) {
-    const gray = imageData.data[i * 4] / 255
-    pixels[i] = invertInk ? 1 - gray : gray
+  const imageData = context.getImageData(
+    0,
+    0,
+    MODEL_IMAGE_WIDTH,
+    MODEL_IMAGE_HEIGHT,
+  )
+  for (let y = 0; y < MODEL_IMAGE_HEIGHT; y += 1) {
+    for (let x = 0; x < MODEL_IMAGE_WIDTH; x += 1) {
+      const sourceIndex = (y * MODEL_IMAGE_WIDTH + x) * 4
+      pixels[x * MODEL_IMAGE_HEIGHT + y] = imageData.data[sourceIndex] / 255
+    }
   }
 
-  let normalized: PixelBuffer = pixels
-  if (rotate) normalized = rotate90Clockwise(normalized, outputSize)
-  if (flipHorizontal) normalized = flipHorizontally(normalized, outputSize)
-
-  return normalized
+  return pixels
 }

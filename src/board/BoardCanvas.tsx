@@ -17,7 +17,7 @@ import {
   getLetterDimensions,
   moveSticker,
   pointInPolygon,
-  replacePendingInkWithSticker,
+  replacePendingInkWithStickerRow,
   removeSticker,
   setSelection,
   setTool,
@@ -111,6 +111,7 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
   const [picker, setPicker] = useState<{
     alternatives: string[]
     bounds: InkBounds
+    text: string
   } | null>(null)
   const [fontsLoaded, setFontsLoaded] = useState(false)
 
@@ -152,13 +153,15 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
     onPendingInkChange(false)
   }, [onPendingInkChange])
 
-  const commitGlyph = useCallback(
-    (glyph: string, bounds: InkBounds) => {
+  const commitText = useCallback(
+    (text: string, bounds: InkBounds) => {
+      const glyphs = text.replace(/[^A-Z]/g, '').slice(0, 12)
+      if (glyphs.length === 0) return
       setBoard((current) =>
-        replacePendingInkWithSticker(
+        replacePendingInkWithStickerRow(
           current,
-          makeId(),
-          glyph,
+          Array.from({ length: glyphs.length }, makeId),
+          glyphs,
           bounds,
           stickerStyle,
         ),
@@ -175,12 +178,19 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
     const bounds = getBounds(strokes)
     const result = await recognize(strokes)
     if (pendingRef.current !== snapshot) return
-    if (result.confidence >= recognitionConfidenceThreshold) {
-      commitGlyph(result.glyph, bounds)
+    if (
+      result.text.length > 0 &&
+      result.confidence >= recognitionConfidenceThreshold
+    ) {
+      commitText(result.text, bounds)
       return
     }
-    setPicker({ alternatives: result.alternatives, bounds })
-  }, [commitGlyph])
+    setPicker({
+      alternatives: result.alternatives,
+      bounds,
+      text: result.text,
+    })
+  }, [commitText])
 
   const resetZoom = useCallback(() => {
     updateViewport(initialViewport)
@@ -503,17 +513,42 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
       </Stage>
       {picker && (
         <div className="glyph-picker ink-picker" style={pickerStyle}>
-          <span className="picker-label">Choose a letter</span>
-          {picker.alternatives.map((glyph) => (
+          <label className="picker-label" htmlFor="recognized-text">
+            Check text
+          </label>
+          <input
+            id="recognized-text"
+            className="recognized-text-input"
+            value={picker.text}
+            maxLength={12}
+            autoCapitalize="characters"
+            spellCheck={false}
+            onChange={(event) => {
+              const text = event.target.value
+                .toUpperCase()
+                .replace(/[^A-Z]/g, '')
+              setPicker((current) => current ? { ...current, text } : null)
+            }}
+          />
+          {picker.alternatives.map((text) => (
             <button
               type="button"
-              className="btn glyph-tile"
-              key={glyph}
-              onClick={() => commitGlyph(glyph, picker.bounds)}
+              className="btn text-candidate"
+              key={text}
+              onClick={() => setPicker({ ...picker, text })}
             >
-              {glyph}
+              {text}
             </button>
           ))}
+          <button
+            type="button"
+            className="icon-button icon-button-accent"
+            aria-label="Add recognized text"
+            disabled={picker.text.length === 0}
+            onClick={() => commitText(picker.text, picker.bounds)}
+          >
+            <span className="icon" aria-hidden="true">check</span>
+          </button>
         </div>
       )}
     </div>

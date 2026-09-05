@@ -1,19 +1,31 @@
-import { loadGraphModel, type GraphModel } from '@tensorflow/tfjs-converter'
 import '@tensorflow/tfjs-backend-cpu'
 import '@tensorflow/tfjs-backend-wasm'
+import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm'
 import { ready, setBackend } from '@tensorflow/tfjs-core'
+import { loadLayersModel, type LayersModel } from '@tensorflow/tfjs-layers'
+import wasmSimdUrl from '@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm?url'
+import wasmThreadedSimdUrl from '@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm?url'
+import wasmUrl from '@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm?url'
 
-const MODEL_URL = '/models/emnist-letters/model.json'
+const MODEL_URL = '/models/handwritten-to-text/model.json'
 
-let modelPromise: Promise<GraphModel> | null = null
+let modelPromise: Promise<LayersModel> | null = null
 
-const loadWithBackend = async (backend: 'wasm' | 'cpu'): Promise<GraphModel> => {
+setWasmPaths({
+  'tfjs-backend-wasm.wasm': wasmUrl,
+  'tfjs-backend-wasm-simd.wasm': wasmSimdUrl,
+  'tfjs-backend-wasm-threaded-simd.wasm': wasmThreadedSimdUrl,
+})
+
+const loadWithBackend = async (
+  backend: 'wasm' | 'cpu',
+): Promise<LayersModel> => {
   await setBackend(backend)
   await ready()
-  return loadGraphModel(MODEL_URL)
+  return loadLayersModel(MODEL_URL)
 }
 
-const loadModelOnce = async (): Promise<GraphModel> => {
+const loadModelOnce = async (): Promise<LayersModel> => {
   try {
     return await loadWithBackend('wasm')
   } catch {
@@ -21,7 +33,7 @@ const loadModelOnce = async (): Promise<GraphModel> => {
   }
 }
 
-export const loadLetterModel = async (): Promise<GraphModel> => {
+export const loadLetterModel = async (): Promise<LayersModel> => {
   if (!modelPromise) {
     modelPromise = loadModelOnce()
   }

@@ -1,16 +1,16 @@
 import type { Stroke } from './types'
-import { inferLetterFromStrokes } from '../recognize/infer'
+import { inferTextFromStrokes } from '../recognize/infer'
 
 export type RecognitionResult = {
-  glyph: string
+  text: string
   confidence: number
   alternatives: string[]
 }
 
 const fallbackResult: RecognitionResult = {
-  glyph: 'A',
+  text: '',
   confidence: 0,
-  alternatives: ['A', 'B', 'C'],
+  alternatives: [],
 }
 
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
@@ -22,7 +22,7 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number): Promise<T
 
 export const recognize = async (strokes: Stroke[]): Promise<RecognitionResult> => {
   try {
-    return await withTimeout(inferLetterFromStrokes(strokes), 900)
+    return await withTimeout(inferTextFromStrokes(strokes), 6000)
   } catch {
     return fallbackResult
   }
