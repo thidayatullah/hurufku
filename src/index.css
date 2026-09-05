@@ -59,21 +59,6 @@ body {
   height: 100%;
 }
 
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex: 0 0 var(--toolbar-height);
-  gap: var(--space-3);
-  height: var(--toolbar-height);
-  padding: 0 var(--space-4);
-  background: var(--toolbar);
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-}
-
 .brand {
   flex: 0 0 auto;
   margin: 0;
@@ -81,6 +66,20 @@ body {
   font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-brand);
+  font-size: 1.3rem;
+  font-weight: 700;
 }
 
 .toolbar-actions,
@@ -222,9 +221,9 @@ body {
 }
 
 .color-swatch {
-  flex: 0 0 var(--tap-min);
-  width: var(--tap-min);
-  height: var(--tap-min);
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
   border: 3px solid transparent;
   border-radius: var(--radius-control);
   cursor: pointer;
@@ -279,6 +278,7 @@ body {
   position: relative;
   flex: 1;
   min-height: 0;
+  height: 100%;
   overflow: hidden;
   touch-action: none;
   background: var(--paper);
@@ -303,6 +303,19 @@ body {
   transform: translateX(-50%);
 }
 
+.brand-island {
+  top: var(--space-3);
+  left: var(--space-3);
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+
+.language-island {
+  top: var(--space-3);
+  right: var(--space-3);
+  padding: var(--space-1);
+}
+
 .island-divider {
   align-self: stretch;
   width: 1px;
@@ -321,18 +334,44 @@ body {
   bottom: var(--space-3);
 }
 
-/* Secondary to the tool island: sits low, tinted, and with a lighter shadow. */
-.inspector-island,
-.brush-island {
-  left: 50%;
-  bottom: calc(var(--tap-min) + var(--space-3) * 2);
-  transform: translateX(-50%);
-  gap: var(--space-2);
+/* Portrait property card inspired by whiteboard editor side panels. */
+.property-panel {
+  top: calc(var(--space-3) + var(--tap-min) + var(--space-3));
+  left: var(--space-3);
+  flex-direction: column;
+  align-items: stretch;
+  width: 168px;
+  max-height: calc(100% - var(--space-3) * 3 - var(--tap-min));
+  gap: var(--space-4);
   padding: var(--space-2);
-  max-width: calc(100% - var(--space-4) * 2);
-  overflow-x: auto;
-  background: var(--panel);
+  overflow-y: auto;
+  background: var(--control-surface);
   box-shadow: 0 2px 10px color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.property-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.property-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.property-grid .btn {
+  min-height: 40px;
+  padding-inline: var(--space-2);
+}
+
+.color-grid {
+  grid-template-columns: repeat(4, 32px);
+}
+
+.compact-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .zoom-level {
@@ -352,16 +391,11 @@ body {
 }
 
 @media (max-width: 720px) {
-  .toolbar {
-    padding-inline: var(--space-2);
-  }
-
-  /* Language matters more than the wordmark on a phone. */
   .brand {
     display: none;
   }
 
-  .toolbar .btn {
+  .language-island .btn {
     padding-inline: var(--space-2);
   }
 }

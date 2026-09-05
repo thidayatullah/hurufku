@@ -196,7 +196,18 @@ export const placeStickerFromGrid = (
   const { width, height } = getLetterDimensions({ glyph, ...style })
   const nextPoint = (): BoardPoint => {
     if (!anchor) {
-      return { x: visible.left + letterGap, y: visible.top + letterGap }
+      const visibleWidth = visible.right - visible.left
+      const visibleHeight = visible.bottom - visible.top
+      return {
+        x: Math.min(
+          Math.max(visible.left + visibleWidth * 0.5 - width / 2, visible.left + letterGap),
+          visible.right - letterGap - width,
+        ),
+        y: Math.min(
+          Math.max(visible.top + visibleHeight * 0.35 - height / 2, visible.top + letterGap),
+          visible.bottom - letterGap - height,
+        ),
+      }
     }
     const x = anchor.x + getLetterDimensions(anchor).width + letterGap
     return x + width <= visible.right - letterGap

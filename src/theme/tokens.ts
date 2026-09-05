@@ -71,11 +71,12 @@ export const letterFills = [
   '#FF7A00', // tangerine
   '#8A2BFF', // grape
   '#00D9FF', // sky pop
+  '#FF5CC8', // candy pink
 ] as const
 
 export type LetterFill = (typeof letterFills)[number]
 
-export const boardFontFamilies = ['Lexend', 'Fredoka', 'Nunito'] as const
+export const boardFontFamilies = ['Lexend', 'Fredoka', 'Nunito', 'Baloo 2'] as const
 
 export type BoardFontFamily = (typeof boardFontFamilies)[number]
 

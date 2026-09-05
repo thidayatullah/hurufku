@@ -55,6 +55,9 @@ const makeId = () =>
 const randomLetterFill = (): LetterFill =>
   letterFills[Math.floor(Math.random() * letterFills.length)]
 
+const fontLabel = (fontFamily: string) =>
+  fontFamily === 'Baloo 2' ? 'Baloo' : fontFamily
+
 export default function App() {
   const [board, setBoard] = useState(() => emptyBoard())
   const [stickerStyle, setStickerStyle] =
@@ -166,31 +169,6 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="toolbar">
-        <h1 className="brand">HurufPad</h1>
-        <div
-          className="language-group"
-          role="group"
-          aria-label="Spoken language"
-        >
-          <button
-            type="button"
-            className="btn"
-            aria-pressed={board.language === 'id'}
-            onClick={() => chooseLanguage('id')}
-          >
-            <span aria-hidden="true">🇮🇩</span> Indonesia
-          </button>
-          <button
-            type="button"
-            className="btn"
-            aria-pressed={board.language === 'en'}
-            onClick={() => chooseLanguage('en')}
-          >
-            <span aria-hidden="true">🇬🇧</span> English
-          </button>
-        </div>
-      </header>
       <main className="board-wrap" ref={boardWrapRef}>
         <BoardCanvas
           ref={canvasRef}
@@ -202,6 +180,10 @@ export default function App() {
           onViewportChange={handleViewportChange}
           onPendingInkChange={setHasPendingInk}
         />
+        <div className="island brand-island" aria-label="HurufPad">
+          <span className="brand-mark" aria-hidden="true">H</span>
+          <h1 className="brand">HurufPad</h1>
+        </div>
         <div className="island tool-island" role="group" aria-label="Board tools">
           {tools.map((tool) => (
             <button
@@ -240,44 +222,81 @@ export default function App() {
             </>
           )}
         </div>
+        <div
+          className="island language-island language-group"
+          role="group"
+          aria-label="Spoken language"
+        >
+          <button
+            type="button"
+            className="btn"
+            aria-pressed={board.language === 'id'}
+            onClick={() => chooseLanguage('id')}
+          >
+            <span aria-hidden="true">🇮🇩</span> Indonesia
+          </button>
+          <button
+            type="button"
+            className="btn"
+            aria-pressed={board.language === 'en'}
+            onClick={() => chooseLanguage('en')}
+          >
+            <span aria-hidden="true">🇬🇧</span> English
+          </button>
+        </div>
         {board.tool === 'pencil' && (
-          <section className="island brush-island" aria-label="Stroke style">
-            <span className="panel-label">Color</span>
-            {selectableLetterFills.map((fill, index) => (
-              <button
-                type="button"
-                className="color-swatch"
-                aria-label={`Stroke color ${index + 1}`}
-                aria-pressed={inkStyle.fill === fill}
-                style={{ backgroundColor: fill }}
-                onClick={() => chooseInkStyle('fill', fill)}
-                key={fill}
-              />
-            ))}
-            <span className="panel-label">Stroke</span>
-            {selectableBrushes.map((brush) => (
-              <button
-                type="button"
-                className="btn inspector-chip"
-                aria-pressed={inkStyle.brush === brush}
-                onClick={() => chooseInkStyle('brush', brush)}
-                key={brush}
-              >
-                {brush[0].toUpperCase() + brush.slice(1)}
-              </button>
-            ))}
-            <span className="panel-label">Weight</span>
-            {selectableStrokeWeights.map((weight) => (
-              <button
-                type="button"
-                className="btn inspector-chip"
-                aria-pressed={inkStyle.weight === weight}
-                onClick={() => chooseInkStyle('weight', weight)}
-                key={weight}
-              >
-                {weight}
-              </button>
-            ))}
+          <section
+            className="island property-panel brush-island"
+            aria-label="Stroke style"
+          >
+            <div className="property-section">
+              <span className="panel-label">Color</span>
+              <div className="property-grid color-grid">
+                {selectableLetterFills.map((fill, index) => (
+                  <button
+                    type="button"
+                    className="color-swatch"
+                    aria-label={`Stroke color ${index + 1}`}
+                    aria-pressed={inkStyle.fill === fill}
+                    style={{ backgroundColor: fill }}
+                    onClick={() => chooseInkStyle('fill', fill)}
+                    key={fill}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="property-section">
+              <span className="panel-label">Stroke</span>
+              <div className="property-grid">
+                {selectableBrushes.map((brush) => (
+                  <button
+                    type="button"
+                    className="btn inspector-chip"
+                    aria-pressed={inkStyle.brush === brush}
+                    onClick={() => chooseInkStyle('brush', brush)}
+                    key={brush}
+                  >
+                    {brush[0].toUpperCase() + brush.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="property-section">
+              <span className="panel-label">Weight</span>
+              <div className="property-grid compact-grid">
+                {selectableStrokeWeights.map((weight) => (
+                  <button
+                    type="button"
+                    className="btn inspector-chip"
+                    aria-pressed={inkStyle.weight === weight}
+                    onClick={() => chooseInkStyle('weight', weight)}
+                    key={weight}
+                  >
+                    {weight}
+                  </button>
+                ))}
+              </div>
+            </div>
           </section>
         )}
         {board.tool === 'addSticker' && (
@@ -321,87 +340,111 @@ export default function App() {
         )}
         {selectedItem && board.tool === 'hand' && (
           <section
-            className="island inspector-island"
+            className="island property-panel inspector-island"
             aria-label="Sticker style"
           >
             {selectedItem.kind === 'letter' ? (
               <>
-                <span className="panel-label">Size</span>
-                {(Object.keys(letterSizes) as LetterSize[]).map((sizeName) => (
-                  <button
-                    type="button"
-                    className="btn inspector-chip"
-                    aria-pressed={selectedItem.size === sizeName}
-                    onClick={() => chooseStyle('size', sizeName)}
-                    key={sizeName}
-                  >
-                    {sizeName}
-                  </button>
-                ))}
-                <span className="panel-label">Color</span>
-                {selectableLetterFills.map((fill, index) => (
-                  <button
-                    type="button"
-                    className="color-swatch"
-                    aria-label={`Letter color ${index + 1}`}
-                    aria-pressed={selectedItem.fill === fill}
-                    style={{ backgroundColor: fill }}
-                    onClick={() => chooseStyle('fill', fill)}
-                    key={fill}
-                  />
-                ))}
-                <span className="panel-label">Font</span>
-                {selectableBoardFonts.map((fontFamily) => (
-                  <button
-                    type="button"
-                    className="btn inspector-chip"
-                    aria-pressed={selectedItem.fontFamily === fontFamily}
-                    style={{ fontFamily }}
-                    onClick={() => chooseStyle('fontFamily', fontFamily)}
-                    key={fontFamily}
-                  >
-                    {fontFamily}
-                  </button>
-                ))}
+                <div className="property-section">
+                  <span className="panel-label">Size</span>
+                  <div className="property-grid compact-grid">
+                    {(Object.keys(letterSizes) as LetterSize[]).map((sizeName) => (
+                      <button
+                        type="button"
+                        className="btn inspector-chip"
+                        aria-pressed={selectedItem.size === sizeName}
+                        onClick={() => chooseStyle('size', sizeName)}
+                        key={sizeName}
+                      >
+                        {sizeName}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="property-section">
+                  <span className="panel-label">Color</span>
+                  <div className="property-grid color-grid">
+                    {selectableLetterFills.map((fill, index) => (
+                      <button
+                        type="button"
+                        className="color-swatch"
+                        aria-label={`Letter color ${index + 1}`}
+                        aria-pressed={selectedItem.fill === fill}
+                        style={{ backgroundColor: fill }}
+                        onClick={() => chooseStyle('fill', fill)}
+                        key={fill}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="property-section">
+                  <span className="panel-label">Font</span>
+                  <div className="property-grid">
+                    {selectableBoardFonts.map((fontFamily) => (
+                      <button
+                        type="button"
+                        className="btn inspector-chip"
+                        aria-pressed={selectedItem.fontFamily === fontFamily}
+                        style={{ fontFamily }}
+                        onClick={() => chooseStyle('fontFamily', fontFamily)}
+                        key={fontFamily}
+                      >
+                        {fontLabel(fontFamily)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </>
             ) : (
               <>
-                <span className="panel-label">Color</span>
-                {selectableLetterFills.map((fill, index) => (
-                  <button
-                    type="button"
-                    className="color-swatch"
-                    aria-label={`Scribble color ${index + 1}`}
-                    aria-pressed={selectedItem.fill === fill}
-                    style={{ backgroundColor: fill }}
-                    onClick={() => chooseScribbleStyle('fill', fill)}
-                    key={fill}
-                  />
-                ))}
-                <span className="panel-label">Stroke</span>
-                {selectableBrushes.map((brush) => (
-                  <button
-                    type="button"
-                    className="btn inspector-chip"
-                    aria-pressed={selectedItem.brush === brush}
-                    onClick={() => chooseScribbleStyle('brush', brush)}
-                    key={brush}
-                  >
-                    {brush[0].toUpperCase() + brush.slice(1)}
-                  </button>
-                ))}
-                <span className="panel-label">Weight</span>
-                {selectableStrokeWeights.map((weight) => (
-                  <button
-                    type="button"
-                    className="btn inspector-chip"
-                    aria-pressed={selectedItem.weight === weight}
-                    onClick={() => chooseScribbleStyle('weight', weight)}
-                    key={weight}
-                  >
-                    {weight}
-                  </button>
-                ))}
+                <div className="property-section">
+                  <span className="panel-label">Color</span>
+                  <div className="property-grid color-grid">
+                    {selectableLetterFills.map((fill, index) => (
+                      <button
+                        type="button"
+                        className="color-swatch"
+                        aria-label={`Scribble color ${index + 1}`}
+                        aria-pressed={selectedItem.fill === fill}
+                        style={{ backgroundColor: fill }}
+                        onClick={() => chooseScribbleStyle('fill', fill)}
+                        key={fill}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="property-section">
+                  <span className="panel-label">Stroke</span>
+                  <div className="property-grid">
+                    {selectableBrushes.map((brush) => (
+                      <button
+                        type="button"
+                        className="btn inspector-chip"
+                        aria-pressed={selectedItem.brush === brush}
+                        onClick={() => chooseScribbleStyle('brush', brush)}
+                        key={brush}
+                      >
+                        {brush[0].toUpperCase() + brush.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="property-section">
+                  <span className="panel-label">Weight</span>
+                  <div className="property-grid compact-grid">
+                    {selectableStrokeWeights.map((weight) => (
+                      <button
+                        type="button"
+                        className="btn inspector-chip"
+                        aria-pressed={selectedItem.weight === weight}
+                        onClick={() => chooseScribbleStyle('weight', weight)}
+                        key={weight}
+                      >
+                        {weight}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </>
             )}
           </section>

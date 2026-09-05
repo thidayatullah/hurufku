@@ -63,6 +63,7 @@ Use only these for letter and scribble objects (see `letterFills` in `src/theme/
 - Tangerine `#FF7A00`
 - Grape `#8A2BFF`
 - Sky pop `#00D9FF`
+- Candy pink `#FF5CC8`
 
 The palette is intentionally bright: rainbow, kids, happy. Yellow is used as a playful object fill, not small body text.
 
@@ -70,7 +71,7 @@ Chrome must not rainbow; letters may.
 
 ### Board fonts
 
-Default and style picker options: Lexend, Fredoka, Nunito. Prefer high x-height and clear shapes for early readers.
+Default and style picker options: Lexend, Fredoka, Nunito, Baloo. The Baloo button uses the `Baloo 2` font family. Prefer high x-height and clear shapes for early readers.
 
 ## Components
 
@@ -92,18 +93,20 @@ Kid-facing controls use a glyph icon font, never emoji or bitmaps. SF Symbols is
 
 Icon buttons are square at `--tap-min`, borderless inside an island, active state = `--accent-tint` fill with `--accent` glyph.
 
-### Toolbar and islands
+### Tablet/Desktop toolbar and islands
 
-Chrome is split between a slim header and floating islands over the board, so the canvas stays the product.
+Chrome is split into floating islands over the board, so the canvas stays the product. There is no full-width salmon header on tablet/desktop.
 
-- **Header** (`--toolbar-height`, `--toolbar` surface, bottom border `--border`): wordmark plus the language group only. The wordmark hides below 720px.
+- **Brand island** — top left of the board: compact HurufPad identity mark.
 - **Tool island** — top center of the board: Hand, Pencil, Eraser, Lasso, Add Sticker in one group. Pencil is selected by default. Speak joins this group after a vertical divider while something is selected; it is disabled if the selection includes a scribble. Eraser stays selected until another tool is chosen; tapping a selected sticker deletes the selected set, while tapping an unselected sticker deletes only that sticker.
-- **Letter island** — bottom center while Add Sticker is active: a keyboard-shaped A–Z keypad with caps lock. Shares the slot with the inspector island, which never shows at the same time.
-- **Brush island** — bottom center while Pencil is active: stroke color, stroke type (pencil, crayon, chalk, marker), and weight. It sets defaults for new scribbles only.
-- **Inspector island** — bottom center, above the bottom row, only with one sticker selected in Hand: letters expose size, color, font; scribbles expose color, stroke type, and stroke weight. Scribble edits also become the defaults for the next scribble. It is deliberately subordinate to the tool island — lower on screen, `--panel` tint, lighter shadow — because it edits one sticker rather than steering the board.
+- **Language island** — top right of the board: Indonesian / English selector, using the existing language buttons.
+- **Letter island** — bottom center while Add Sticker is active: a keyboard-shaped A–Z keypad with caps lock.
+- **Property panel** — left side, below the brand island, in a portrait card style. Pencil shows stroke color, stroke type (pencil, crayon, chalk, marker), and weight. Hand with one selected letter shows size, color, font. Hand with one selected scribble shows color, stroke type, and stroke weight. Scribble edits also become the defaults for the next scribble.
 - **Zoom island** — bottom left: current zoom percentage and Reset zoom, which is disabled at 100% with no pan.
 - **Action island** — bottom right, contextual: “Make sticker” only while ink waits to become a scribble sticker.
 - Islands use `--control-surface`, `--radius-island`, a hairline border, and one soft shadow. This is the one place card chrome is allowed, since islands wrap interaction.
+
+Phone-specific layout is a later phase.
 
 ### Buttons
 
