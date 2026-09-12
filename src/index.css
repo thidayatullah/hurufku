@@ -381,7 +381,9 @@ body {
 }
 
 .color-grid {
-  grid-template-columns: repeat(4, var(--swatch-size));
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(auto-fit, var(--swatch-size));
+  justify-content: start;
 }
 
 .compact-grid {
