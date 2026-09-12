@@ -53,6 +53,8 @@ export const brushes = {
 
 export type BrushKind = keyof typeof brushes
 
+export const phoneScale = 0.75
+
 export const letterSizes = {
   S: 56,
   M: 80,

@@ -103,9 +103,6 @@ export default function App() {
   const selectionHasScribble = selectedItems.some(
     (item) => item.kind === 'scribble',
   )
-  const canUseStrokeInspector =
-    board.tool === 'pencil' || selectedItem?.kind === 'scribble'
-  const canUseTextInspector = selectedItem?.kind === 'letter'
 
   const chooseLanguage = (language: Language) => {
     setBoard((current) => setLanguage(current, language))
@@ -251,6 +248,44 @@ export default function App() {
     </>
   )
 
+  const renderBrushColorOnly = () => (
+    <div className="property-section">
+      <span className="panel-label">Color</span>
+      <div className="property-grid color-grid">
+        {selectableLetterFills.map((fill, index) => (
+          <button
+            type="button"
+            className="color-swatch"
+            aria-label={`Stroke color ${index + 1}`}
+            aria-pressed={inkStyle.fill === fill}
+            style={{ backgroundColor: fill }}
+            onClick={() => chooseInkStyle('fill', fill)}
+            key={fill}
+          />
+        ))}
+      </div>
+    </div>
+  )
+
+  const renderBrushWeightOnly = () => (
+    <div className="property-section">
+      <span className="panel-label">Weight</span>
+      <div className="property-grid compact-grid">
+        {selectableStrokeWeights.map((weight) => (
+          <button
+            type="button"
+            className="btn inspector-chip"
+            aria-pressed={inkStyle.weight === weight}
+            onClick={() => chooseInkStyle('weight', weight)}
+            key={weight}
+          >
+            {weight}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+
   const renderLetterControls = () => {
     if (!selectedItem || selectedItem.kind !== 'letter') return null
     return (
@@ -305,6 +340,73 @@ export default function App() {
           </div>
         </div>
       </>
+    )
+  }
+
+  const renderLetterSizeOnly = () => {
+    if (!selectedItem || selectedItem.kind !== 'letter') return null
+    return (
+      <div className="property-section">
+        <span className="panel-label">Size</span>
+        <div className="property-grid compact-grid">
+          {(Object.keys(letterSizes) as LetterSize[]).map((sizeName) => (
+            <button
+              type="button"
+              className="btn inspector-chip"
+              aria-pressed={selectedItem.size === sizeName}
+              onClick={() => chooseStyle('size', sizeName)}
+              key={sizeName}
+            >
+              {sizeName}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const renderLetterColorOnly = () => {
+    if (!selectedItem || selectedItem.kind !== 'letter') return null
+    return (
+      <div className="property-section">
+        <span className="panel-label">Color</span>
+        <div className="property-grid color-grid">
+          {selectableLetterFills.map((fill, index) => (
+            <button
+              type="button"
+              className="color-swatch"
+              aria-label={`Letter color ${index + 1}`}
+              aria-pressed={selectedItem.fill === fill}
+              style={{ backgroundColor: fill }}
+              onClick={() => chooseStyle('fill', fill)}
+              key={fill}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const renderLetterFontOnly = () => {
+    if (!selectedItem || selectedItem.kind !== 'letter') return null
+    return (
+      <div className="property-section">
+        <span className="panel-label">Font</span>
+        <div className="property-grid">
+          {selectableBoardFonts.map((fontFamily) => (
+            <button
+              type="button"
+              className="btn inspector-chip"
+              aria-pressed={selectedItem.fontFamily === fontFamily}
+              style={{ fontFamily }}
+              onClick={() => chooseStyle('fontFamily', fontFamily)}
+              key={fontFamily}
+            >
+              {fontLabel(fontFamily)}
+            </button>
+          ))}
+        </div>
+      </div>
     )
   }
 
@@ -364,19 +466,90 @@ export default function App() {
     )
   }
 
+  const renderScribbleColorOnly = () => {
+    if (!selectedItem || selectedItem.kind !== 'scribble') return null
+    return (
+      <div className="property-section">
+        <span className="panel-label">Color</span>
+        <div className="property-grid color-grid">
+          {selectableLetterFills.map((fill, index) => (
+            <button
+              type="button"
+              className="color-swatch"
+              aria-label={`Scribble color ${index + 1}`}
+              aria-pressed={selectedItem.fill === fill}
+              style={{ backgroundColor: fill }}
+              onClick={() => chooseScribbleStyle('fill', fill)}
+              key={fill}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const renderScribbleWeightOnly = () => {
+    if (!selectedItem || selectedItem.kind !== 'scribble') return null
+    return (
+      <div className="property-section">
+        <span className="panel-label">Weight</span>
+        <div className="property-grid compact-grid">
+          {selectableStrokeWeights.map((weight) => (
+            <button
+              type="button"
+              className="btn inspector-chip"
+              aria-pressed={selectedItem.weight === weight}
+              onClick={() => chooseScribbleStyle('weight', weight)}
+              key={weight}
+            >
+              {weight}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const renderScribbleStrokeOnly = () => {
+    if (!selectedItem || selectedItem.kind !== 'scribble') return null
+    return (
+      <div className="property-section">
+        <span className="panel-label">Stroke</span>
+        <div className="property-grid">
+          {selectableBrushes.map((brush) => (
+            <button
+              type="button"
+              className="btn inspector-chip"
+              aria-pressed={selectedItem.brush === brush}
+              onClick={() => chooseScribbleStyle('brush', brush)}
+              key={brush}
+            >
+              {brush[0].toUpperCase() + brush.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   const compactInspectorContent = (() => {
     if (activeInspector === 'color') {
-      if (board.tool === 'pencil') return renderBrushControls()
+      if (board.tool === 'pencil') return renderBrushColorOnly()
       return selectedItem?.kind === 'scribble'
-        ? renderScribbleControls()
-        : renderLetterControls()
+        ? renderScribbleColorOnly()
+        : renderLetterColorOnly()
     }
     if (activeInspector === 'stroke') {
-      return selectedItem?.kind === 'scribble'
-        ? renderScribbleControls()
-        : renderBrushControls()
+      if (selectedItem?.kind === 'scribble') return renderScribbleWeightOnly()
+      if (selectedItem?.kind === 'letter') return renderLetterSizeOnly()
+      if (board.tool === 'pencil') return renderBrushWeightOnly()
+      return null
     }
-    if (activeInspector === 'text') return renderLetterControls()
+    if (activeInspector === 'text') {
+      if (selectedItem?.kind === 'scribble') return renderScribbleStrokeOnly()
+      if (selectedItem?.kind === 'letter') return renderLetterFontOnly()
+      return null
+    }
     return null
   })()
 
@@ -438,7 +611,7 @@ export default function App() {
             className="icon-button"
             aria-label="Color inspector"
             aria-pressed={activeInspector === 'color'}
-            disabled={board.tool !== 'pencil' && !selectedItem}
+            disabled={board.tool !== 'pencil' && selectedItems.length === 0}
             onClick={() =>
               setActiveInspector((current) =>
                 current === 'color' ? null : 'color',
@@ -452,9 +625,9 @@ export default function App() {
           <button
             type="button"
             className="icon-button"
-            aria-label="Stroke inspector"
+            aria-label="Size / Weight"
             aria-pressed={activeInspector === 'stroke'}
-            disabled={!canUseStrokeInspector}
+            disabled={selectedItems.length === 0}
             onClick={() =>
               setActiveInspector((current) =>
                 current === 'stroke' ? null : 'stroke',
@@ -468,9 +641,9 @@ export default function App() {
           <button
             type="button"
             className="icon-button"
-            aria-label="Text inspector"
+            aria-label="Font / Stroke"
             aria-pressed={activeInspector === 'text'}
-            disabled={!canUseTextInspector}
+            disabled={selectedItems.length === 0}
             onClick={() =>
               setActiveInspector((current) =>
                 current === 'text' ? null : 'text',
