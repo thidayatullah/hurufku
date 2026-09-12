@@ -38,7 +38,7 @@ import {
 /** Icons are Material Symbols ligatures — the web stand-in for the SF Symbols in docs/DESIGN.md. */
 const tools: { value: Tool; label: string; icon: string }[] = [
   { value: 'hand', label: 'Hand', icon: 'back_hand' },
-  { value: 'pencil', label: 'Pencil', icon: 'stylus' },
+  { value: 'pencil', label: 'Pencil', icon: 'gesture' },
   { value: 'eraser', label: 'Eraser', icon: 'ink_eraser' },
   { value: 'lasso', label: 'Lasso', icon: 'lasso_select' },
   { value: 'addSticker', label: 'Add Sticker', icon: 'text_fields' },
@@ -534,10 +534,10 @@ export default function App() {
 
   const compactInspectorContent = (() => {
     if (activeInspector === 'color') {
+      if (selectedItem?.kind === 'scribble') return renderScribbleColorOnly()
+      if (selectedItem?.kind === 'letter') return renderLetterColorOnly()
       if (board.tool === 'pencil') return renderBrushColorOnly()
-      return selectedItem?.kind === 'scribble'
-        ? renderScribbleColorOnly()
-        : renderLetterColorOnly()
+      return null
     }
     if (activeInspector === 'stroke') {
       if (selectedItem?.kind === 'scribble') return renderScribbleWeightOnly()
@@ -600,6 +600,16 @@ export default function App() {
               >
                 <span className="icon" aria-hidden="true">
                   record_voice_over
+                </span>
+              </button>
+              <button
+                type="button"
+                className="icon-button tool-speak-control"
+                aria-label="Delete selected"
+                onClick={deleteSelection}
+              >
+                <span className="icon" aria-hidden="true">
+                  delete
                 </span>
               </button>
             </>
@@ -730,7 +740,7 @@ export default function App() {
             <span className="control-label">English</span>
           </button>
         </div>
-        {board.tool === 'pencil' && (
+        {board.tool === 'pencil' && !selectedItem && (
           <section
             className="island property-panel brush-island"
             aria-label="Stroke style"
@@ -777,7 +787,7 @@ export default function App() {
             ))}
           </section>
         )}
-        {selectedItem && board.tool === 'hand' && (
+        {selectedItem && (
           <section
             className="island property-panel inspector-island"
             aria-label="Sticker style"

@@ -161,8 +161,12 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
   }, [onPendingInkChange])
 
   const commitScribble = useCallback(() => {
-    const strokes = pendingRef.current
-    if (strokes.length === 0) return
+    // Discard single-point strokes (a tap with no drag) so we don't create invisible scribbles.
+    const strokes = pendingRef.current.filter((stroke) => stroke.length > 1)
+    if (strokes.length === 0) {
+      clearInk()
+      return
+    }
     const bounds = getBounds(strokes)
     setBoard((current) =>
       addItem(current, createScribble(makeId(), strokes, bounds, inkStyle)),
@@ -478,6 +482,12 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
             onDragMove={onItemDragMove}
             onDragEnd={onItemDragEnd}
           >
+            {/* Invisible hit target so taps anywhere in the bounding box (not just on a stroke) register. */}
+            <Rect
+              width={dimensions.width}
+              height={dimensions.height}
+              fill="transparent"
+            />
             {item.strokes.map((stroke, index) => {
               const brush = brushes[item.brush]
               const strokeWidth = brushStrokeWidth(item)
