@@ -20,8 +20,9 @@ export const speakLetters = (letters: LetterItem[], language: Language) => {
     return voiceLanguage === language || voiceLanguage.startsWith(family)
   })
   const utterance = new SpeechSynthesisUtterance(
+    // Lowercased so voices read a syllable ("ba") instead of spelling out an all-caps acronym ("B, A").
     sortItemsLeftToRight(letters)
-      .map(({ glyph }) => glyph)
+      .map(({ glyph }) => glyph.toLowerCase())
       .join(''),
   )
   utterance.lang = lang
