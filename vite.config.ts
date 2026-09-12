@@ -2,8 +2,8 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// App is published under a landing page's /canvas subpath: thidayatullah.github.io/huruf-ku/canvas/
-const base = '/huruf-ku/canvas/'
+// App is published under a landing page's /canvas subpath: thidayatullah.github.io/hurufku/canvas/
+const base = '/hurufku/canvas/'
 
 export default defineConfig({
   base,
