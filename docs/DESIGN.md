@@ -1,4 +1,4 @@
-# HurufPad — design system
+# Hurufku — design system
 
 Source of truth for visual and interaction style. Product scope stays in `PRODUCT_BRIEF.md`.
 
@@ -89,6 +89,10 @@ Kid-facing controls use a glyph icon font, never emoji or bitmaps. SF Symbols is
 | Reset zoom | `arrow.up.left.and.down.right.magnifyingglass` | `zoom_out_map` |
 | Speak | `person.wave.2` | `record_voice_over` |
 | Make sticker | `wand.and.sparkles` | `wand_stars` |
+| Color inspector | `paintpalette` / `paintbrush.pointed` | `format_color_fill` |
+| Stroke inspector | `slider.horizontal.3` | `tune` |
+| Text inspector | `textformat.size` | `format_size` |
+| Delete selected | `trash` | `delete` |
 | Caps lock on / off | `textformat.size.larger` / `textformat.size.smaller` | `uppercase` / `lowercase` |
 
 Icon buttons are square at `--tap-min`, borderless inside an island, active state = `--accent-tint` fill with `--accent` glyph.
@@ -97,7 +101,7 @@ Icon buttons are square at `--tap-min`, borderless inside an island, active stat
 
 Chrome is split into floating islands over the board, so the canvas stays the product. There is no full-width salmon header on tablet/desktop.
 
-- **Brand island** — top left of the board: compact HurufPad identity mark.
+- **Brand island** — top left of the board: compact Hurufku identity mark.
 - **Tool island** — top center of the board: Hand, Pencil, Eraser, Lasso, Add Sticker in one group. Pencil is selected by default. Speak joins this group after a vertical divider while something is selected; it is disabled if the selection includes a scribble. Eraser stays selected until another tool is chosen; tapping a selected sticker deletes the selected set, while tapping an unselected sticker deletes only that sticker.
 - **Language island** — top right of the board: Indonesian / English selector, using the existing language buttons.
 - **Letter island** — bottom center while Add Sticker is active: a keyboard-shaped A–Z keypad with caps lock.
@@ -106,7 +110,16 @@ Chrome is split into floating islands over the board, so the canvas stays the pr
 - **Action island** — bottom right, contextual: “Make sticker” only while ink waits to become a scribble sticker.
 - Islands use `--control-surface`, `--radius-island`, a hairline border, and one soft shadow. This is the one place card chrome is allowed, since islands wrap interaction.
 
-Phone-specific layout is a later phase.
+### Phone / compact toolbar and inspectors
+
+Compact mode starts at `max-width: 640px` or `max-height: 500px`.
+
+- **Top controls** — brand is icon-only at top left; zoom sits beside it; language is flag-only at top right.
+- **Bottom dock** — main tools move to the bottom. A secondary row sits directly above the main toolbar.
+- **Secondary row** — Color, Stroke, Text, Speak, Make sticker, Delete selected. Labels may be hidden in compact mode; icons keep `aria-label` text.
+- **Inspector popover** — tapping Color, Stroke, or Text opens a portrait popover above the dock. The paint bucket button opens the color inspector. Popovers close via Escape or tapping outside.
+- **Add Sticker grid** — shrinks fluidly into a 10-column layout so all letters and caps lock remain visible without horizontal scrolling.
+- **Placement inset** — new stickers account for the bottom dock, so wrapped rows do not land beneath compact chrome.
 
 ### Buttons
 

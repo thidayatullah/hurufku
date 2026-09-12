@@ -2,7 +2,11 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// App is published under a landing page's /canvas subpath: thidayatullah.github.io/huruf-ku/canvas/
+const base = '/huruf-ku/canvas/'
+
 export default defineConfig({
+  base,
   server: {
     host: true,
   },
@@ -27,14 +31,15 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: 'HurufPad',
-        short_name: 'HurufPad',
+        name: 'Hurufku',
+        short_name: 'Hurufku',
         description:
           'Letter pad for kids: scribble or type letters, then arrange and hear them.',
         theme_color: '#fdf7f3',
         background_color: '#fdf7f3',
         display: 'standalone',
-        start_url: '/',
+        start_url: base,
+        scope: base,
       },
     }),
   ],

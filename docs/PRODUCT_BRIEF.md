@@ -1,8 +1,8 @@
-# HurufPad — product brief
+# Hurufku — product brief
 
 ## Overview
 
-HurufPad (*huruf* = letter, *pad* = drawing surface) is a large shared canvas for preschool reading: kids draw with a marker (finger/mouse) or add letter stickers from a keyboard. Drawn scribbles become movable stickers they can arrange, recolor, and restyle. Letter stickers can be lined up into bits of language (BA, BABA, ABA). A teacher can say how it sounds; a Speak action can also read a letter-only selection aloud.
+Hurufku (*huruf* = letter, *-ku* = "my" in Indonesian) is a large shared canvas for preschool reading: kids draw with a marker (finger/mouse) or add letter stickers from a keyboard. Drawn scribbles become movable stickers they can arrange, recolor, and restyle. Letter stickers can be lined up into bits of language (BA, BABA, ABA). A teacher can say how it sounds; a Speak action can also read a letter-only selection aloud.
 
 v1 is a **browser app** (phones, cheap Android tablets, Chromebooks, PCs) so families and classrooms are not locked to iPad.
 

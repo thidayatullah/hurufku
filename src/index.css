@@ -25,7 +25,10 @@
   --space-5: 24px;
 
   /* Controls */
-  --tap-min: 48px;
+  --tap-min: clamp(44px, 11vw, 48px);
+  --icon-size: clamp(22px, 6vw, 28px);
+  --swatch-size: clamp(28px, 8vw, 32px);
+  --label-size: clamp(0.75rem, 3vw, 0.875rem);
   --toolbar-height: 56px;
   --radius-sm: 8px;
   --radius-control: 12px;
@@ -89,10 +92,14 @@ body {
   flex: 0 0 auto;
 }
 
+.control-label {
+  margin-left: var(--space-1);
+}
+
 /* Material Symbols stand in for SF Symbols on the web; text is the ligature name. */
 .icon {
   font-family: 'Material Symbols Rounded';
-  font-size: 28px;
+  font-size: var(--icon-size);
   font-weight: normal;
   font-style: normal;
   line-height: 1;
@@ -212,7 +219,7 @@ body {
 .brush-label {
   flex: 0 0 auto;
   color: var(--muted);
-  font-size: 0.875rem;
+  font-size: var(--label-size);
   font-weight: 600;
 }
 
@@ -221,9 +228,9 @@ body {
 }
 
 .color-swatch {
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
+  flex: 0 0 var(--swatch-size);
+  width: var(--swatch-size);
+  height: var(--swatch-size);
   border: 3px solid transparent;
   border-radius: var(--radius-control);
   cursor: pointer;
@@ -295,12 +302,19 @@ body {
   border-radius: var(--radius-island);
   background: var(--control-surface);
   box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 12%, transparent);
+  z-index: 2;
 }
 
 .tool-island {
   top: var(--space-3);
   left: 50%;
   transform: translateX(-50%);
+}
+
+.secondary-island,
+.compact-inspector,
+.compact-inspector-backdrop {
+  display: none;
 }
 
 .brand-island {
@@ -367,7 +381,7 @@ body {
 }
 
 .color-grid {
-  grid-template-columns: repeat(4, 32px);
+  grid-template-columns: repeat(4, var(--swatch-size));
 }
 
 .compact-grid {
@@ -390,12 +404,149 @@ body {
   touch-action: none;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 640px), (max-height: 500px) {
+  .app,
+  .board-wrap {
+    height: 100dvh;
+  }
+
   .brand {
     display: none;
   }
 
+  .brand-island {
+    padding: var(--space-1);
+  }
+
+  .brand-mark {
+    width: var(--tap-min);
+    height: var(--tap-min);
+    font-size: 1.25rem;
+  }
+
+  .language-island {
+    gap: var(--space-1);
+  }
+
   .language-island .btn {
-    padding-inline: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tap-min);
+    min-width: var(--tap-min);
+    padding: 0;
+  }
+
+  .control-label,
+  .tool-speak-control {
+    display: none;
+  }
+
+  .tool-island,
+  .secondary-island {
+    left: 50%;
+    width: min(calc(100% - var(--space-3) * 2), 620px);
+    max-width: calc(100% - var(--space-3) * 2);
+    justify-content: space-between;
+    overflow-x: auto;
+    transform: translateX(-50%);
+    scrollbar-width: none;
+  }
+
+  .tool-island::-webkit-scrollbar,
+  .secondary-island::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tool-island {
+    top: auto;
+    bottom: calc(env(safe-area-inset-bottom) + var(--space-3));
+  }
+
+  .secondary-island {
+    display: flex;
+    bottom: calc(env(safe-area-inset-bottom) + var(--space-3) + var(--tap-min) + var(--space-2));
+  }
+
+  .property-panel {
+    display: none;
+  }
+
+  .compact-inspector {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    bottom: calc(env(safe-area-inset-bottom) + var(--space-3) + var(--tap-min) * 2 + var(--space-2) * 3);
+    width: min(288px, calc(100% - var(--space-3) * 2));
+    max-height: calc(100% - env(safe-area-inset-bottom) - 210px);
+    gap: var(--space-4);
+    padding: var(--space-3);
+    overflow-y: auto;
+    z-index: 4;
+  }
+
+  .compact-inspector-backdrop {
+    position: absolute;
+    inset: 0;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    z-index: 1;
+  }
+
+  .compact-inspector-color {
+    left: var(--space-3);
+  }
+
+  .compact-inspector-stroke {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .compact-inspector-text {
+    right: var(--space-3);
+  }
+
+  .letter-island {
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: calc(env(safe-area-inset-bottom) + var(--space-3) + var(--tap-min) * 2 + var(--space-2) * 3);
+    transform: none;
+    max-width: none;
+    gap: clamp(4px, 1.5vw, 8px);
+    overflow-x: visible;
+  }
+
+  .letter-row {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: clamp(4px, 1.5vw, 8px);
+  }
+
+  .letter-row:last-child .glyph-tile:first-child {
+    grid-column-start: 2;
+  }
+
+  .caps-button,
+  .glyph-tile {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .glyph-tile {
+    font-size: clamp(1rem, 6vw, 1.75rem);
+  }
+
+  .zoom-island {
+    top: var(--space-3);
+    bottom: auto;
+    left: calc(var(--space-3) * 2 + var(--tap-min));
+  }
+
+  .action-island {
+    display: none;
   }
 }
