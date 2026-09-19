@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/png" href="./favicon.png" />
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="./favicon-64.png" />
   <meta name="theme-color" content="#fff6ef" />
   <title>Hurufku — susun huruf, denger bacaannya</title>
   <meta
@@ -41,18 +41,23 @@
         radial-gradient(ellipse 70% 50% at 50% 0%, rgba(123, 92, 255, 0.10), transparent 70%),
         radial-gradient(ellipse 50% 40% at 80% 20%, rgba(255, 107, 74, 0.08), transparent 60%);
     }
-    .brand-mark {
-      width: 40px;
-      height: 40px;
-      margin-bottom: 6px;
+    .hero-wordmark {
+      width: min(280px, 70vw);
+      height: auto;
+      margin: 0 0 10px;
       object-fit: contain;
       display: block;
     }
-    h1 {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: clamp(1.75rem, 4.5vw, 2.4rem);
-      margin: 0 0 6px;
-      line-height: 1.1;
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
     .tagline {
       max-width: 420px;
@@ -95,8 +100,7 @@
     }
     @media (min-height: 901px) {
       .hero { padding: 40px 24px 28px; }
-      .brand-mark { width: 56px; height: 56px; margin-bottom: 12px; }
-      h1 { font-size: clamp(2rem, 6vw, 3rem); margin-bottom: 10px; }
+      .hero-wordmark { width: min(320px, 70vw); margin-bottom: 16px; }
       .tagline { font-size: 1.15rem; margin-bottom: 6px; }
       .tagline-en { margin-bottom: 20px; font-size: 0.95rem; }
       .hero-media { width: min(720px, 90vw); }
@@ -251,8 +255,14 @@
 </head>
 <body>
   <div class="hero">
-    <img class="brand-mark" src="./favicon.png" width="56" height="56" alt="" />
-    <h1>Hurufku</h1>
+    <img
+      class="hero-wordmark"
+      src="./hurufku-wordmark.png"
+      width="280"
+      height="66"
+      alt=""
+    />
+    <h1 class="visually-hidden">Hurufku</h1>
     <p class="tagline">Susun huruf, terus denger bacaannya.</p>
     <p class="tagline-en">Line up the letters, then hear them read.</p>
 

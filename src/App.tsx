@@ -566,7 +566,11 @@ export default function App() {
           onViewportChange={handleViewportChange}
           onPendingInkChange={setHasPendingInk}
         />
-        <div className="island brand-island" aria-label="Hurufku">
+        <a
+          className="island brand-island"
+          href="../"
+          aria-label="Kembali ke beranda Hurufku"
+        >
           <img
             className="brand-mark-img brand-mark-phone"
             src={`${import.meta.env.BASE_URL}brand/h-sticker.png`}
@@ -583,7 +587,7 @@ export default function App() {
             draggable={false}
           />
           <h1 className="brand visually-hidden">Hurufku</h1>
-        </div>
+        </a>
         <div className="island tool-island" role="group" aria-label="Board tools">
           {tools.map((tool) => (
             <button
