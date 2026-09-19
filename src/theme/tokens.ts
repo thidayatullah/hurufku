@@ -4,6 +4,10 @@ export const toolbarHeight = 56
 export const inkSettleMs = 800
 export const minBoardScale = 0.5
 export const maxBoardScale = 2.5
+/** Same query as the compact layout media query in `src/index.css`. */
+export const compactMediaQuery = '(max-width: 640px), (max-height: 500px)'
+/** First-visit camera scale on compact / phone only. */
+export const compactDefaultScale = 0.5
 export const letterGap = 16
 export const lineGap = 24
 export const alignmentYTolerance = 12

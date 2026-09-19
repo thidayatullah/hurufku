@@ -30,6 +30,8 @@ import type { Board, BoardItem, BoardPoint, InkBounds, Stroke } from './types'
 import {
   boardAccent,
   brushes,
+  compactDefaultScale,
+  compactMediaQuery,
   inkSettleMs,
   maxBoardScale,
   minBoardScale,
@@ -58,7 +60,16 @@ export type Viewport = {
   y: number
 }
 
-const initialViewport: Viewport = { scale: 1, x: 0, y: 0 }
+/** Reset target: 100% with no pan. Desktop/tablet first visit also uses this. */
+const resetViewport: Viewport = { scale: 1, x: 0, y: 0 }
+
+/** Phone / compact first visit starts at 50%. Viewport is not persisted. */
+export const createDefaultViewport = (): Viewport => {
+  const compact = globalThis.matchMedia?.(compactMediaQuery).matches ?? false
+  return compact
+    ? { scale: compactDefaultScale, x: 0, y: 0 }
+    : resetViewport
+}
 
 const flattenPoints = (points: BoardPoint[]) =>
   points.flatMap(({ x, y }) => [x, y])
@@ -114,11 +125,11 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
     scale: number
     anchor: BoardPoint
   } | null>(null)
-  const viewportRef = useRef(initialViewport)
+  const [viewport, setViewport] = useState(createDefaultViewport)
+  const viewportRef = useRef(viewport)
   const drawingRef = useRef(false)
   const lassoRef = useRef<BoardPoint[]>([])
   const selectionDragRef = useRef<SelectionDrag | null>(null)
-  const [viewport, setViewport] = useState(initialViewport)
   const [pendingStrokes, setPendingStrokes] = useState<Stroke[]>([])
   const [lasso, setLasso] = useState<BoardPoint[]>([])
   const [fontsLoaded, setFontsLoaded] = useState(false)
@@ -175,7 +186,7 @@ export const BoardCanvas = forwardRef<BoardCanvasHandle, BoardCanvasProps>(
   }, [clearInk, inkStyle, setBoard])
 
   const resetZoom = useCallback(() => {
-    updateViewport(initialViewport)
+    updateViewport(resetViewport)
   }, [updateViewport])
 
   useImperativeHandle(

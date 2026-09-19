@@ -1,6 +1,7 @@
 :root {
   /* Surfaces use soft classroom chrome; board objects use the rainbow palette. */
   --paper: #fdf7f3;
+  --lp-paper: #fff6ef;
   --toolbar: #f5d3c4;
   --panel: #fbe7de;
   --control-surface: #ffffff;
@@ -441,7 +442,12 @@ body {
   }
 
   .brand-island {
+    min-height: 0;
     padding: var(--space-1);
+    gap: 0;
+    aspect-ratio: 1;
+    justify-content: center;
+    background: var(--lp-paper);
   }
 
   .brand-mark-wordmark {
@@ -450,8 +456,9 @@ body {
 
   .brand-mark-phone {
     display: block;
-    width: 36px;
-    height: 36px;
+    width: var(--tap-min);
+    height: var(--tap-min);
+    aspect-ratio: 1;
   }
 
   .language-island {
@@ -595,7 +602,7 @@ body {
   .zoom-island {
     top: var(--space-3);
     bottom: auto;
-    left: calc(var(--space-3) * 2 + var(--tap-min));
+    left: calc(var(--space-3) * 2 + var(--tap-min) + var(--space-1) * 2);
   }
 
   .action-island {

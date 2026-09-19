@@ -3,6 +3,7 @@ import {
   BoardCanvas,
   type BoardCanvasHandle,
   type Viewport,
+  createDefaultViewport,
 } from './board/BoardCanvas'
 import {
   defaultScribbleStyle,
@@ -27,6 +28,7 @@ import {
 import { speakLetters } from './board/speak'
 import { emptyBoard, type Language, type Tool } from './board/types'
 import {
+  compactMediaQuery,
   letterFills,
   letterSizes,
   type BrushKind,
@@ -66,11 +68,7 @@ export default function App() {
   const [stickerStyle, setStickerStyle] =
     useState<StickerStyle>(defaultStickerStyle)
   const [inkStyle, setInkStyle] = useState<InkStyle>(defaultScribbleStyle)
-  const [viewport, setViewport] = useState<Viewport>({
-    scale: 1,
-    x: 0,
-    y: 0,
-  })
+  const [viewport, setViewport] = useState<Viewport>(createDefaultViewport)
   const boardWrapRef = useRef<HTMLElement>(null)
   const canvasRef = useRef<BoardCanvasHandle>(null)
   const [size, setSize] = useState({ width: 320, height: 320 })
@@ -166,7 +164,7 @@ export default function App() {
       right: (size.width - viewport.x) / viewport.scale,
       bottom: (size.height - viewport.y) / viewport.scale,
     }
-    if (globalThis.matchMedia?.('(max-width: 640px), (max-height: 500px)').matches) {
+    if (globalThis.matchMedia?.(compactMediaQuery).matches) {
       visible.bottom -= 136 / viewport.scale
     }
     setBoard((current) =>
