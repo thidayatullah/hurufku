@@ -247,6 +247,13 @@
         gap: 20px;
       }
       .feature.flip .copy { order: 0; }
+      /* Portrait phone LP clips */
+      .hero-media { width: min(320px, 88vw); }
+      .hero-media .media-frame,
+      .feature .media-frame {
+        aspect-ratio: 9 / 16;
+        max-height: min(420px, 52vh);
+      }
     }
     @media (prefers-reduced-motion: reduce) {
       .caption-pill { transition: none; }
@@ -271,14 +278,14 @@
         <video
           class="lp-video"
           poster="./media/hero-speak-letters.png"
+          data-desktop="./media/videos/hero-arrange-speak.mp4"
+          data-phone="./media/videos/phone/hero-arrange-speak.mp4"
           muted
           autoplay
           loop
           playsinline
           preload="metadata"
-        >
-          <source src="./media/videos/hero-arrange-speak.mp4" type="video/mp4" />
-        </video>
+        ></video>
         <div class="caption-pill" aria-live="polite">
           <p class="id"></p>
           <p class="en"></p>
@@ -297,14 +304,14 @@
         <video
           class="lp-video"
           poster="./media/feature-speak-lang.png"
+          data-desktop="./media/videos/feature-speak.mp4"
+          data-phone="./media/videos/phone/feature-speak.mp4"
           muted
           autoplay
           loop
           playsinline
           preload="metadata"
-        >
-          <source src="./media/videos/feature-speak.mp4" type="video/mp4" />
-        </video>
+        ></video>
         <div class="caption-pill" aria-live="polite">
           <p class="id"></p>
           <p class="en"></p>
@@ -325,14 +332,14 @@
         <video
           class="lp-video"
           poster="./media/feature-syllables-BABA.png"
+          data-desktop="./media/videos/feature-arrange.mp4"
+          data-phone="./media/videos/phone/feature-arrange.mp4"
           muted
           autoplay
           loop
           playsinline
           preload="metadata"
-        >
-          <source src="./media/videos/feature-arrange.mp4" type="video/mp4" />
-        </video>
+        ></video>
         <div class="caption-pill" aria-live="polite">
           <p class="id"></p>
           <p class="en"></p>
@@ -353,14 +360,14 @@
         <video
           class="lp-video"
           poster="./media/feature-scribble-BABA.png"
+          data-desktop="./media/videos/feature-scribble.mp4"
+          data-phone="./media/videos/phone/feature-scribble.mp4"
           muted
           autoplay
           loop
           playsinline
           preload="metadata"
-        >
-          <source src="./media/videos/feature-scribble.mp4" type="video/mp4" />
-        </video>
+        ></video>
         <div class="caption-pill" aria-live="polite">
           <p class="id"></p>
           <p class="en"></p>
@@ -435,6 +442,26 @@
       }
 
       var pickers = { hero: pickHero, f1: pickF1, f2: pickF2, f3: pickF3 };
+
+      var phoneMq = window.matchMedia('(max-width: 800px)');
+      function applyVideoSources() {
+        var phone = phoneMq.matches;
+        document.querySelectorAll('video.lp-video').forEach(function (video) {
+          var next = phone ? video.getAttribute('data-phone') : video.getAttribute('data-desktop');
+          if (!next) return;
+          if (video.getAttribute('data-active-src') === next) return;
+          video.setAttribute('data-active-src', next);
+          video.pause();
+          video.src = next;
+          video.load();
+          video.muted = true;
+          var playPromise = video.play();
+          if (playPromise && playPromise.catch) playPromise.catch(function () {});
+        });
+      }
+      applyVideoSources();
+      if (phoneMq.addEventListener) phoneMq.addEventListener('change', applyVideoSources);
+      else if (phoneMq.addListener) phoneMq.addListener(applyVideoSources);
 
       document.querySelectorAll('[data-caption-slot]').forEach(function (frame) {
         var slot = frame.getAttribute('data-caption-slot');
