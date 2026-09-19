@@ -36,15 +36,15 @@
       flex-direction: column;
       align-items: center;
       text-align: center;
-      padding: 56px 24px 40px;
+      padding: 28px 24px 20px;
       background:
         radial-gradient(ellipse 70% 50% at 50% 0%, rgba(123, 92, 255, 0.10), transparent 70%),
         radial-gradient(ellipse 50% 40% at 80% 20%, rgba(255, 107, 74, 0.08), transparent 60%);
     }
     .brand-mark {
-      width: 56px;
-      height: 56px;
-      margin-bottom: 12px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 8px;
       object-fit: contain;
       display: block;
     }
@@ -63,7 +63,7 @@
     }
     .tagline-en {
       max-width: 420px;
-      margin: 0 0 28px;
+      margin: 0 0 16px;
       font-size: 0.95rem;
       color: var(--en);
       line-height: 1.4;
@@ -86,8 +86,15 @@
       object-position: center top;
       display: block;
     }
-    .hero-media { width: min(880px, 100%); }
+    /* Keep CTA in first viewport on ~1280×800: tighter hero media */
+    .hero-media { width: min(640px, 92vw); }
     .hero-media .media-frame { width: 100%; }
+    @media (min-width: 900px) and (min-height: 900px) {
+      .hero { padding: 40px 24px 28px; }
+      .brand-mark { width: 56px; height: 56px; margin-bottom: 12px; }
+      .hero-media { width: min(760px, 90vw); }
+      .tagline-en { margin-bottom: 20px; }
+    }
 
     /* Soft pill caption — bottom of frame, clear of Speak / lang toggle */
     .caption-pill {
@@ -143,8 +150,8 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-top: 28px;
-      padding: 16px 32px;
+      margin-top: 16px;
+      padding: 14px 28px;
       background: var(--accent);
       color: #fff;
       border-radius: 999px;
