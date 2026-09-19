@@ -93,13 +93,6 @@
       outline: none;
       border: 0;
     }
-    /* Desktop clips have a baked-in window hairline — nudge scale to crop it */
-    @media (min-width: 801px) {
-      .media-frame video {
-        transform: scale(1.02);
-        transform-origin: center center;
-      }
-    }
     /* Hero media: keep “Buka kanvas” in first 1280×800 viewport */
     .hero-media { width: min(560px, 90vw); }
     .hero-media .media-frame {
