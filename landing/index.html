@@ -249,12 +249,20 @@
         gap: 20px;
       }
       .feature.flip .copy { order: 0; }
-      /* Portrait phone LP clips */
+      /* Portrait phone LP clips — contain so bottom dock stays visible */
       .hero-media { width: min(320px, 88vw); }
       .hero-media .media-frame,
       .feature .media-frame {
         aspect-ratio: 9 / 16;
         max-height: min(420px, 52vh);
+        background: #fff6ef;
+      }
+      .hero-media .media-frame img,
+      .hero-media .media-frame video,
+      .feature .media-frame img,
+      .feature .media-frame video {
+        object-fit: contain;
+        object-position: center center;
       }
     }
     @media (prefers-reduced-motion: reduce) {
