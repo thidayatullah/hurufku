@@ -567,8 +567,22 @@ export default function App() {
           onPendingInkChange={setHasPendingInk}
         />
         <div className="island brand-island" aria-label="Hurufku">
-          <span className="brand-mark" aria-hidden="true">H</span>
-          <h1 className="brand">Hurufku</h1>
+          <img
+            className="brand-mark-img brand-mark-phone"
+            src={`${import.meta.env.BASE_URL}brand/h-sticker.png`}
+            alt=""
+            width={40}
+            height={40}
+            draggable={false}
+          />
+          <img
+            className="brand-mark-img brand-mark-wordmark"
+            src={`${import.meta.env.BASE_URL}brand/hurufku-wordmark.png`}
+            alt=""
+            height={32}
+            draggable={false}
+          />
+          <h1 className="brand visually-hidden">Hurufku</h1>
         </div>
         <div className="island tool-island" role="group" aria-label="Board tools">
           {tools.map((tool) => (

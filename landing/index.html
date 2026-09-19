@@ -1,207 +1,436 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <meta name="theme-color" content="#fdf7f3" />
-    <title>Hurufku — draw, arrange, and hear letters</title>
-    <meta
-      name="description"
-      content="Hurufku is a shared canvas for preschool reading: draw letters or scribbles, arrange them into words, and hear them read aloud."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Lexend:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        color-scheme: light;
-        --ink: #2e2b40;
-        --accent: #0055da;
-        --bg: #fdf7f3;
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="./favicon.png" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta name="theme-color" content="#fff6ef" />
+  <title>Hurufku — susun huruf, denger bacaannya</title>
+  <meta
+    name="description"
+    content="Hurufku: susun huruf, terus denger bacaannya. Kanvas baca untuk anak — Speak, susun suku kata, coret jadi stiker. Offline, tanpa akun."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #3a2f45;
+      --accent: #ff6b4a;
+      --accent-deep: #e85a3c;
+      --bg: #fff6ef;
+      --mark: #7b5cff;
+      --chip: #ffffff;
+      --en: rgba(58, 47, 69, 0.55);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Lexend, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 56px 24px 40px;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 0%, rgba(123, 92, 255, 0.10), transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 20%, rgba(255, 107, 74, 0.08), transparent 60%);
+    }
+    .brand-mark {
+      width: 56px;
+      height: 56px;
+      margin-bottom: 12px;
+      object-fit: contain;
+      display: block;
+    }
+    h1 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: clamp(2rem, 6vw, 3rem);
+      margin: 0 0 10px;
+      line-height: 1.1;
+    }
+    .tagline {
+      max-width: 420px;
+      margin: 0 0 6px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .tagline-en {
+      max-width: 420px;
+      margin: 0 0 28px;
+      font-size: 0.95rem;
+      color: var(--en);
+      line-height: 1.4;
+    }
+    .media-frame {
+      width: min(880px, 100%);
+      aspect-ratio: 16 / 10;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(58, 47, 69, 0.08);
+      box-shadow: 0 18px 44px rgba(58, 47, 69, 0.10);
+      background: #fff;
+      position: relative;
+    }
+    .media-frame img,
+    .media-frame video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+    .hero-media { width: min(880px, 100%); }
+    .hero-media .media-frame { width: 100%; }
+
+    /* Soft pill caption — bottom of frame, clear of Speak / lang toggle */
+    .caption-pill {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      z-index: 2;
+      max-width: calc(100% - 28px);
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(255, 246, 239, 0.92);
+      border: 1px solid rgba(58, 47, 69, 0.08);
+      box-shadow: 0 8px 24px rgba(58, 47, 69, 0.12);
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .caption-pill.is-visible { opacity: 1; }
+    .caption-pill .id {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--ink);
+    }
+    .caption-pill .en {
+      margin: 2px 0 0;
+      font-size: 0.8rem;
+      line-height: 1.3;
+      color: var(--en);
+    }
+
+    .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      box-shadow: 0 4px 12px rgba(255, 107, 74, 0.35);
+    }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 28px;
+      padding: 16px 32px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      box-shadow: 0 10px 28px rgba(255, 107, 74, 0.35);
+    }
+    .cta:active { transform: translateY(1px); }
+    .cta-en {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--en);
+    }
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 24px 24px 64px;
+    }
+    .feature {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+      align-items: center;
+      margin: 56px 0;
+    }
+    .feature.flip { grid-template-columns: 1fr 1.2fr; }
+    .feature.flip .copy { order: -1; }
+    .feature h3 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.55rem;
+      margin: 0 0 12px;
+    }
+    .feature .id-line {
+      margin: 0 0 4px;
+      line-height: 1.5;
+      font-size: 1.02rem;
+    }
+    .feature .en-line {
+      margin: 0 0 10px;
+      line-height: 1.45;
+      font-size: 0.9rem;
+      color: var(--en);
+    }
+    .feature .media-frame { width: 100%; }
+    .trust {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 72px 0 28px;
+    }
+    .chip {
+      background: var(--chip);
+      border: 1px solid rgba(255, 107, 74, 0.18);
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    .chip span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 400;
+      opacity: 0.55;
+      margin-top: 2px;
+    }
+    .center { text-align: center; }
+    footer {
+      text-align: center;
+      padding: 40px 24px 56px;
+      opacity: 0.55;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 800px) {
+      .feature, .feature.flip {
+        grid-template-columns: 1fr;
+        gap: 20px;
       }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        font-family: 'Lexend', -apple-system, system-ui, sans-serif;
-        background: var(--bg);
-        color: var(--ink);
-      }
-      .hero {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        padding: 64px 24px 48px;
-      }
-      .brand-mark {
-        width: 56px;
-        height: 56px;
-        margin-bottom: 12px;
-      }
-      h1 {
-        font-family: 'Baloo 2', sans-serif;
-        font-size: clamp(2rem, 6vw, 3rem);
-        margin: 0 0 12px;
-      }
-      .tagline {
-        max-width: 480px;
-        font-size: 1.1rem;
-        line-height: 1.5;
-        opacity: 0.8;
-        margin: 0 0 32px;
-      }
-      .cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 16px 32px;
-        background: var(--accent);
-        color: white;
-        border-radius: 999px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 1.1rem;
-        box-shadow: 0 8px 24px rgba(0, 85, 218, 0.3);
-      }
-      .cta:active {
-        transform: translateY(1px);
-      }
-      main {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 0 24px 64px;
-      }
-      h2 {
-        font-family: 'Baloo 2', sans-serif;
-        font-size: 1.5rem;
-        margin: 48px 0 16px;
-      }
-      .steps {
-        display: grid;
-        gap: 16px;
-        padding: 0;
-        margin: 0;
-        list-style: none;
-      }
-      .steps li {
-        display: flex;
-        gap: 16px;
-        background: white;
-        border: 1px solid rgba(46, 43, 64, 0.08);
-        border-radius: 16px;
-        padding: 16px 20px;
-      }
-      .step-number {
-        flex: none;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: var(--accent);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-      }
-      .step-body h3 {
-        margin: 0 0 4px;
-        font-size: 1rem;
-      }
-      .step-body p {
-        margin: 0;
-        opacity: 0.75;
-        line-height: 1.5;
-      }
-      footer {
-        text-align: center;
-        padding: 32px 24px 48px;
-        opacity: 0.6;
-        font-size: 0.9rem;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="hero">
-      <svg class="brand-mark" viewBox="0 0 48 46" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path
-          fill="#863bff"
-          d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z"
-        />
-      </svg>
-      <h1>Hurufku</h1>
-      <p class="tagline">
-        A shared canvas for preschool reading. Draw letters or scribbles, arrange them into
-        words, and hear them read aloud — right in the browser, no login required.
-      </p>
-      <a class="cta" href="./canvas/">Open the canvas →</a>
-    </div>
-    <main>
-      <h2>How it works</h2>
-      <ol class="steps">
-        <li>
-          <span class="step-number">1</span>
-          <div class="step-body">
-            <h3>Draw or type</h3>
-            <p>
-              Scribble freely with a marker (finger, mouse, or stylus), or use the keyboard to
-              drop letter stickers straight onto the board.
-            </p>
-          </div>
-        </li>
-        <li>
-          <span class="step-number">2</span>
-          <div class="step-body">
-            <h3>Watch scribbles become stickers</h3>
-            <p>
-              After a short pause, strokes drawn close together turn into one movable sticker
-              you can drag, resize, and recolor.
-            </p>
-          </div>
-        </li>
-        <li>
-          <span class="step-number">3</span>
-          <div class="step-body">
-            <h3>Arrange into words</h3>
-            <p>
-              Line letter stickers up left-to-right to spell simple words like BA, BABA, or ABA.
-            </p>
-          </div>
-        </li>
-        <li>
-          <span class="step-number">4</span>
-          <div class="step-body">
-            <h3>Hear it read aloud</h3>
-            <p>
-              Select letters and press Speak to hear them read in English or Indonesian.
-            </p>
-          </div>
-        </li>
-        <li>
-          <span class="step-number">5</span>
-          <div class="step-body">
-            <h3>Pick up where you left off</h3>
-            <p>
-              Hurufku remembers your last board on this device — no account, no cloud sync.
-            </p>
-          </div>
-        </li>
-      </ol>
-      <h2>Works everywhere</h2>
-      <p>
-        Hurufku runs in any modern browser on phones, tablets, Chromebooks, and PCs. Open the
-        canvas once, and it keeps working offline afterward — install it to your home screen for
-        quick access.
-      </p>
-      <div style="text-align: center; margin-top: 32px">
-        <a class="cta" href="./canvas/">Start drawing →</a>
+      .feature.flip .copy { order: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .caption-pill { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <img class="brand-mark" src="./favicon.png" width="56" height="56" alt="" />
+    <h1>Hurufku</h1>
+    <p class="tagline">Susun huruf, terus denger bacaannya.</p>
+    <p class="tagline-en">Line up the letters, then hear them read.</p>
+
+    <div class="hero-media" data-video-ready="true">
+      <div class="media-frame" data-caption-slot="hero">
+        <video
+          class="lp-video"
+          poster="./media/hero-speak-letters.png"
+          muted
+          autoplay
+          loop
+          playsinline
+          preload="metadata"
+        >
+          <source src="./media/videos/hero-arrange-speak.mp4" type="video/mp4" />
+        </video>
+        <div class="caption-pill" aria-live="polite">
+          <p class="id"></p>
+          <p class="en"></p>
+        </div>
       </div>
-    </main>
-    <footer>Hurufku — huruf = letter, -ku = "my" in Indonesian.</footer>
-  </body>
+    </div>
+
+    <a class="cta" href="./canvas/">Buka kanvas</a>
+    <div class="cta-en">Open the canvas</div>
+  </div>
+
+  <main>
+    <section class="feature">
+      <div class="media-frame" data-caption-slot="f1">
+        <span class="badge">1</span>
+        <video
+          class="lp-video"
+          poster="./media/feature-speak-lang.png"
+          muted
+          autoplay
+          loop
+          playsinline
+          preload="metadata"
+        >
+          <source src="./media/videos/feature-speak.mp4" type="video/mp4" />
+        </video>
+        <div class="caption-pill" aria-live="polite">
+          <p class="id"></p>
+          <p class="en"></p>
+        </div>
+      </div>
+      <div class="copy">
+        <h3>Speak</h3>
+        <p class="id-line">Pilih hurufnya, terus pencet Speak.</p>
+        <p class="en-line">Pick the letters, then tap Speak.</p>
+        <p class="id-line">Bisa dengerin Indonesia atau Inggris.</p>
+        <p class="en-line">Hear Indonesian or English.</p>
+      </div>
+    </section>
+
+    <section class="feature flip">
+      <div class="media-frame" data-caption-slot="f2">
+        <span class="badge">2</span>
+        <video
+          class="lp-video"
+          poster="./media/feature-syllables-BABA.png"
+          muted
+          autoplay
+          loop
+          playsinline
+          preload="metadata"
+        >
+          <source src="./media/videos/feature-arrange.mp4" type="video/mp4" />
+        </video>
+        <div class="caption-pill" aria-live="polite">
+          <p class="id"></p>
+          <p class="en"></p>
+        </div>
+      </div>
+      <div class="copy">
+        <h3>Susun suku kata</h3>
+        <p class="id-line">Taruh stiker huruf di papan.</p>
+        <p class="en-line">Drop letter stickers on the board.</p>
+        <p class="id-line">Susun aja jadi BA, BABA, atau ABA.</p>
+        <p class="en-line">Line them up as BA, BABA, or ABA.</p>
+      </div>
+    </section>
+
+    <section class="feature">
+      <div class="media-frame" data-caption-slot="f3">
+        <span class="badge">3</span>
+        <video
+          class="lp-video"
+          poster="./media/feature-scribble-BABA.png"
+          muted
+          autoplay
+          loop
+          playsinline
+          preload="metadata"
+        >
+          <source src="./media/videos/feature-scribble.mp4" type="video/mp4" />
+        </video>
+        <div class="caption-pill" aria-live="polite">
+          <p class="id"></p>
+          <p class="en"></p>
+        </div>
+      </div>
+      <div class="copy">
+        <h3>Coret → stiker</h3>
+        <p class="id-line">Coret-coret dulu — jari, mouse, atau stylus.</p>
+        <p class="en-line">Scribble first — finger, mouse, or stylus.</p>
+        <p class="id-line">Goretannya jadi stiker, bisa digeser dan diganti warna.</p>
+        <p class="en-line">Strokes become stickers you can move and recolor.</p>
+      </div>
+    </section>
+
+    <div class="trust">
+      <div class="chip">Bisa offline<span>Works offline</span></div>
+      <div class="chip">Gak perlu akun<span>No account</span></div>
+      <div class="chip">Kesimpen di perangkat ini<span>Saved on this device</span></div>
+    </div>
+
+    <div class="center">
+      <a class="cta" href="./canvas/">Mulai coret</a>
+      <div class="cta-en">Start drawing</div>
+    </div>
+  </main>
+
+  <footer>Hurufku — huruf = letter, -ku = "my" in Indonesian.</footer>
+
+  <script>
+    (function () {
+      var LINES = {
+        1: { id: 'Dengerin: Indonesia', en: 'Hear: Indonesia' },
+        2: { id: 'Dengerin: English', en: 'Hear: English' },
+        3: { id: 'Pencet Speak', en: 'Tap Speak' },
+        4: { id: 'Susun jadi suku kata', en: 'Line up the syllables' },
+        5: { id: 'Goretan jadi stiker', en: 'Doodles become stickers' }
+      };
+
+      function setCaption(pill, key) {
+        if (!pill) return;
+        if (!key || !LINES[key]) {
+          pill.classList.remove('is-visible');
+          return;
+        }
+        pill.querySelector('.id').textContent = LINES[key].id;
+        pill.querySelector('.en').textContent = LINES[key].en;
+        pill.classList.add('is-visible');
+      }
+
+      function pickHero(t) {
+        // Speak beat ~19–26s: #3 then alternate #1 / #2
+        if (t < 19) return null;
+        if (t < 21) return 3;
+        if (t < 23.5) return 1;
+        return 2;
+      }
+
+      function pickF1(t) {
+        // Speak-focused trim (~11s): cycle #3 → #1 → #2
+        var cycle = t % 6;
+        if (cycle < 2) return 3;
+        if (cycle < 4) return 1;
+        return 2;
+      }
+
+      function pickF2() { return 4; }
+
+      function pickF3(t) {
+        // Source 0:25–0:34 aha → after 1.5× from t0=20s ≈ 3.3–9.3s of output
+        if (t >= 3 && t <= 11) return 5;
+        return t > 0 ? 5 : null;
+      }
+
+      var pickers = { hero: pickHero, f1: pickF1, f2: pickF2, f3: pickF3 };
+
+      document.querySelectorAll('[data-caption-slot]').forEach(function (frame) {
+        var slot = frame.getAttribute('data-caption-slot');
+        var video = frame.querySelector('video.lp-video');
+        var pill = frame.querySelector('.caption-pill');
+        if (!video || !pickers[slot]) return;
+
+        var last = null;
+        function tick() {
+          var key = pickers[slot](video.currentTime || 0);
+          if (key !== last) {
+            last = key;
+            setCaption(pill, key);
+          }
+        }
+        video.addEventListener('timeupdate', tick);
+        video.addEventListener('play', tick);
+        // Ensure muted autoplay after load (iOS-friendly)
+        video.muted = true;
+        var playPromise = video.play();
+        if (playPromise && playPromise.catch) playPromise.catch(function () {});
+        tick();
+      });
+    })();
+  </script>
+</body>
 </html>

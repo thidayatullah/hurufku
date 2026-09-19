@@ -14,7 +14,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.png', 'favicon.svg', 'brand/h-sticker.png', 'brand/hurufku-wordmark.png'],
       workbox: {
         runtimeCaching: [
           {
