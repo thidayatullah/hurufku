@@ -36,37 +36,37 @@
       flex-direction: column;
       align-items: center;
       text-align: center;
-      padding: 28px 24px 20px;
+      padding: 20px 24px 12px;
       background:
         radial-gradient(ellipse 70% 50% at 50% 0%, rgba(123, 92, 255, 0.10), transparent 70%),
         radial-gradient(ellipse 50% 40% at 80% 20%, rgba(255, 107, 74, 0.08), transparent 60%);
     }
     .brand-mark {
-      width: 48px;
-      height: 48px;
-      margin-bottom: 8px;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 6px;
       object-fit: contain;
       display: block;
     }
     h1 {
       font-family: 'Baloo 2', sans-serif;
-      font-size: clamp(2rem, 6vw, 3rem);
-      margin: 0 0 10px;
+      font-size: clamp(1.75rem, 4.5vw, 2.4rem);
+      margin: 0 0 6px;
       line-height: 1.1;
     }
     .tagline {
       max-width: 420px;
-      margin: 0 0 6px;
-      font-size: 1.15rem;
+      margin: 0 0 4px;
+      font-size: 1.05rem;
       font-weight: 600;
-      line-height: 1.4;
+      line-height: 1.35;
     }
     .tagline-en {
       max-width: 420px;
-      margin: 0 0 16px;
-      font-size: 0.95rem;
+      margin: 0 0 12px;
+      font-size: 0.9rem;
       color: var(--en);
-      line-height: 1.4;
+      line-height: 1.35;
     }
     .media-frame {
       width: min(880px, 100%);
@@ -86,14 +86,25 @@
       object-position: center top;
       display: block;
     }
-    /* Keep CTA in first viewport on ~1280×800: tighter hero media */
-    .hero-media { width: min(640px, 92vw); }
-    .hero-media .media-frame { width: 100%; }
-    @media (min-width: 900px) and (min-height: 900px) {
+    /* Hero media: keep “Buka kanvas” in first 1280×800 viewport */
+    .hero-media { width: min(560px, 90vw); }
+    .hero-media .media-frame {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      max-height: 300px;
+    }
+    @media (min-height: 901px) {
       .hero { padding: 40px 24px 28px; }
       .brand-mark { width: 56px; height: 56px; margin-bottom: 12px; }
-      .hero-media { width: min(760px, 90vw); }
-      .tagline-en { margin-bottom: 20px; }
+      h1 { font-size: clamp(2rem, 6vw, 3rem); margin-bottom: 10px; }
+      .tagline { font-size: 1.15rem; margin-bottom: 6px; }
+      .tagline-en { margin-bottom: 20px; font-size: 0.95rem; }
+      .hero-media { width: min(720px, 90vw); }
+      .hero-media .media-frame {
+        aspect-ratio: 16 / 10;
+        max-height: none;
+      }
+      .cta { margin-top: 24px; padding: 16px 32px; }
     }
 
     /* Soft pill caption — bottom of frame, clear of Speak / lang toggle */
